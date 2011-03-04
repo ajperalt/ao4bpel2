@@ -18,6 +18,8 @@
  */
 package org.apache.ode.bpel.evt;
 
+import org.apache.ode.bpel.o.OBase;
+
 /**
  * Base class for all activity events. Note that each activity occurs in some
  * scope, hence this class extends {@link ScopeEvent}.
@@ -31,6 +33,10 @@ public abstract class ActivityEvent extends ScopeEvent {
   
   /** Activity Id, unique for each activity <em>instance</em>. */
   private long _aid;
+  
+  // AO4ODE: xpath
+  // private String xPath;
+  private OBase obase; 
 
   public ActivityEvent() {
     super();
@@ -79,6 +85,26 @@ public abstract class ActivityEvent extends ScopeEvent {
 
   public TYPE getType() {
     return TYPE.activityLifecycle;
+  }
+
+
+  // AO4ODE: Getter/Setter for XPath on ActivityEvent
+  /*
+  public void setXPath(String xPath) {
+	  this.xPath = xPath;
+  }
+  
+  public String getXPath() {
+	  return this.xPath;
+  }
+  */
+  
+  public void setO(OBase obase) {
+	  this.obase = obase;
+  }
+
+  public OBase getO() {
+	  return obase;
   }
 
 }

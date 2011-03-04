@@ -26,6 +26,7 @@ import org.apache.ode.bpel.evt.ActivityExecEndEvent;
 import org.apache.ode.bpel.evt.ActivityExecStartEvent;
 import org.apache.ode.bpel.evt.ActivityFailureEvent;
 import org.apache.ode.bpel.evt.ActivityRecoveryEvent;
+import org.apache.ode.bpel.evt.InvokeExecStartEvent;
 import org.apache.ode.bpel.explang.EvaluationException;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OExpression;
@@ -42,6 +43,7 @@ import org.apache.ode.bpel.runtime.channels.ActivityRecoveryChannel;
 import org.apache.ode.bpel.runtime.channels.ActivityRecoveryChannelListener;
 import org.apache.ode.bpel.runtime.channels.TimerResponseChannel;
 import org.apache.ode.bpel.runtime.channels.TimerResponseChannelListener;
+import org.apache.ode.bpel.runtime.facts.ODEInvokeFact;
 import org.apache.ode.jacob.ChannelListener;
 import org.apache.ode.jacob.SynchChannel;
 
@@ -54,7 +56,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-class ACTIVITYGUARD extends ACTIVITY {
+//AO4ODE: Changed Visibility to public
+public class ACTIVITYGUARD extends ACTIVITY {
     private static final long serialVersionUID = 1L;
 
     private static final Log __log = LogFactory.getLog(ACTIVITYGUARD.class);
@@ -86,6 +89,13 @@ class ACTIVITYGUARD extends ACTIVITY {
             if (evaluateJoinCondition()) {
                 ActivityExecStartEvent aese = new ActivityExecStartEvent();
                 sendEvent(aese);
+                
+                // AO4ODE: Send BeforeInvoke Event
+                if(_oactivity.getType().equals("OInvoke")) {                	
+                	InvokeExecStartEvent iese = new InvokeExecStartEvent((OInvoke)_oactivity);
+                	sendEvent(iese);
+                }
+                
                 // intercept completion channel in order to execute transition conditions.
                 ActivityInfo activity = new ActivityInfo(genMonotonic(),_self.o,_self.self, newChannel(ParentScopeChannel.class));
                 instance(createActivity(activity));
@@ -209,6 +219,7 @@ class ACTIVITYGUARD extends ACTIVITY {
 
                 public void completed(FaultData faultData, Set<CompensationHandler> compensations) {
                     sendEvent(new ActivityExecEndEvent());
+                    
                     if (faultData != null) {
                         dpe(_oactivity.sourceLinks);
                         _self.parent.completed(faultData, compensations);

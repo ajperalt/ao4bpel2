@@ -56,4 +56,9 @@ public class OSwitch extends OActivity {
             super(owner);
         }
     }
+    
+    // AO4ODE: accept ASTVisitor
+    public void accept(ASTVisitor visitor) {
+    	visitor.visit(this);
+    }
 }

@@ -259,4 +259,9 @@ public class OAssign extends OActivity {
     		copy.dehydrate();
     	}
     }
+    
+    // AO4ODE: accept Visitor
+    public void accept(ASTVisitor visitor) {
+    	visitor.visit(this);
+    }
 }

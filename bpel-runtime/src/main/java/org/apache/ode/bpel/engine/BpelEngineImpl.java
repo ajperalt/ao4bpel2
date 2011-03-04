@@ -63,11 +63,14 @@ import org.apache.ode.bpel.o.OConstants;
 import org.apache.ode.bpel.o.OPartnerLink;
 import org.apache.ode.bpel.o.OProcess;
 import org.apache.ode.bpel.runtime.InvalidProcessException;
+import org.apache.ode.bpel.runtime.facts.ODEBpelProcess;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.utils.Namespaces;
 import org.apache.ode.utils.msg.MessageBundle;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import de.tud.stg.bpel.ao4ode.BpelFactsManager;
 
 /**
  * Implementation of the {@link BpelEngine} interface: provides the server methods that should be invoked in the context of a
@@ -79,6 +82,9 @@ import org.w3c.dom.Element;
 public class BpelEngineImpl implements BpelEngine {
     private static final Log __log = LogFactory.getLog(BpelEngineImpl.class);
 
+    // AO4ODE: BpelFactsManager
+    private final BpelFactsManager bfm = BpelFactsManager.getInstance();
+    
     /** RNG, for delays */
     private Random _random = new Random(System.currentTimeMillis());
 
@@ -344,6 +350,9 @@ public class BpelEngineImpl implements BpelEngine {
             processes.add(process);
         }
         process.activate(this);
+        
+        // AO4ODE: Register Process and add static process facts
+    	bfm.registerProcess(new ODEBpelProcess(process.getOProcess()));
     }
     
     /**

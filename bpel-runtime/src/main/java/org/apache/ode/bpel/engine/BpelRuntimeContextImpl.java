@@ -25,9 +25,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.wsdl.Fault;
 import javax.wsdl.Operation;
@@ -100,7 +98,6 @@ import org.apache.ode.bpel.runtime.channels.InvokeResponseChannel;
 import org.apache.ode.bpel.runtime.channels.PickResponseChannel;
 import org.apache.ode.bpel.runtime.channels.TimerResponseChannel;
 import org.apache.ode.jacob.JacobRunnable;
-import org.apache.ode.jacob.vpu.ExecutionQueueImpl;
 import org.apache.ode.jacob.vpu.JacobVPU;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.utils.GUID;
@@ -113,10 +110,17 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Document;
 
+import de.tud.stg.bpel.ao4ode.BpelFactsManager;
+
+import de.tud.stg.ao4ode.AO4ODEExecutionQueueImpl;
+
 public class BpelRuntimeContextImpl implements BpelRuntimeContext {
 
     private static final Log __log = LogFactory.getLog(BpelRuntimeContextImpl.class);
 
+    // AO4ODE:
+    private final BpelFactsManager bfm = BpelFactsManager.getInstance();
+    
     /** Data-access object for process instance. */
     protected ProcessInstanceDAO _dao;
 
@@ -127,7 +131,9 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
     protected JacobVPU _vpu;
 
     /** JACOB ExecutionQueue (state) */
-    protected ExecutionQueueImpl _soup;
+    // AO4ODE:
+    // protected ExecutionQueueImpl _soup;
+    protected AO4ODEExecutionQueueImpl _soup;
 
     private MyRoleMessageExchangeImpl _instantiatingMessageExchange;
 
@@ -143,7 +149,7 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
     private long _maxReductionTimeMs = 2000000;
 
     public BpelRuntimeContextImpl(BpelProcess bpelProcess, ProcessInstanceDAO dao, PROCESS PROCESS,
-                                  MyRoleMessageExchangeImpl instantiatingMessageExchange) {
+                                  MyRoleMessageExchangeImpl instantiatingMessageExchange) {    	
         _bpelProcess = bpelProcess;
         _dao = dao;
         _iid = dao.getInstanceId();
@@ -151,7 +157,8 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
         _vpu = new JacobVPU();
         _vpu.registerExtension(BpelRuntimeContext.class, this);
 
-        _soup = new ExecutionQueueImpl(null);
+        // AO4ODE: Use AO4BPEL ExeciutionQueueImpl
+        _soup = new AO4ODEExecutionQueueImpl(this.getClass().getClassLoader(), this);
         _soup.setReplacementMap(_bpelProcess.getReplacementMap(dao.getProcess().getProcessId()));
         _outstandingRequests = null;
         _imaManager = new IMAManager();
@@ -160,7 +167,8 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
         if (bpelProcess.isInMemory()) {
             ProcessInstanceDaoImpl inmem = (ProcessInstanceDaoImpl) _dao;
             if (inmem.getSoup() != null) {
-                _soup = (ExecutionQueueImpl) inmem.getSoup();
+            	// AO4ODE: Use AO4BPEL ExecutionQueueImpl
+                _soup = (AO4ODEExecutionQueueImpl) inmem.getSoup();
                 _imaManager = (IMAManager) _soup.getGlobalData();
                 _vpu.setContext(_soup);
             }
@@ -1146,6 +1154,10 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
         event.setProcessId(_dao.getProcess().getProcessId());
         event.setProcessName(_dao.getProcess().getType());
         event.setProcessInstanceId(_dao.getInstanceId());
+        
+        // AO4ODE: Set oprocess on ProcessEvent
+        event.setOProcess(_bpelProcess.getOProcess());
+        
         _bpelProcess._debugger.onEvent(event);
 
         // filter scopes
@@ -1568,6 +1580,11 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
         } else {
             return c;
         }
+    }
+    
+    // AO4ODE: Getter for VPU
+    public JacobVPU getVPU() {
+    	return _vpu;
     }
 
 }

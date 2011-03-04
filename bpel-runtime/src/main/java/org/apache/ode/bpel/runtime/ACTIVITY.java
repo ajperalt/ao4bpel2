@@ -28,6 +28,8 @@ import org.apache.ode.bpel.common.FaultException;
 import org.apache.ode.bpel.evt.ActivityEvent;
 import org.apache.ode.bpel.evt.EventContext;
 import org.apache.ode.bpel.evt.ScopeEvent;
+import org.apache.ode.bpel.evt.VariableEvent;
+import org.apache.ode.bpel.evt.VariableModificationEvent;
 import org.apache.ode.bpel.evt.VariableReadEvent;
 import org.apache.ode.bpel.explang.EvaluationContext;
 import org.apache.ode.bpel.o.OActivity;
@@ -43,7 +45,8 @@ import org.w3c.dom.Node;
 /**
  * Base template for activities.
  */
-abstract class ACTIVITY extends BpelJacobRunnable implements IndexedObject {
+// AO4ODE: Changed Visibility to public
+public abstract class ACTIVITY extends BpelJacobRunnable implements IndexedObject {
 	private static final Log __log = LogFactory.getLog(ACTIVITY.class);
     protected ActivityInfo _self;
 
@@ -69,17 +72,33 @@ abstract class ACTIVITY extends BpelJacobRunnable implements IndexedObject {
     public Object getKey() {
         return new Key(_self.o,_self.aId);
     }
-
+    
+    // AO4ODE: Handle VariableModificationEvent
+    // Some VarModEvents are send as ScopeEvents, see below
+    protected void sendEvent(VariableModificationEvent event) {
+    	
+    	event.setO(_self.o);
+    	
+    	sendEvent((ScopeEvent) event);
+    }
     
     protected void sendVariableReadEvent(VariableInstance var) {
     	VariableReadEvent vre = new VariableReadEvent();
     	vre.setVarName(var.declaration.name);
+    	
+    	// AO4ODE: Set O for Variable Read Event
+        vre.setO(_self.o);
+    	
     	sendEvent(vre);
     }
-    
+        
     protected void sendEvent(ActivityEvent event) {
         event.setActivityName(_self.o.name);
         event.setActivityType(_self.o.getType());
+        
+        // AO4ODE: Set O for ActivityEvents (to get XPath etc.)
+        event.setO(_self.o);
+        
         event.setActivityDeclarationId(_self.o.getId());
         event.setActivityId(_self.aId);
         if (event.getLineNo() == -1) {
@@ -89,6 +108,16 @@ abstract class ACTIVITY extends BpelJacobRunnable implements IndexedObject {
     }
 
     protected void sendEvent(ScopeEvent event) {
+    	
+    	// AO4ODE: Some VariableModificationEvents and
+    	// VariableReadEvents (VariableEvents) are send as
+    	// ScopeEvents.
+    	if(event instanceof VariableEvent) {
+    		VariableEvent ve = (VariableEvent)event;
+    		// AO4ODE: Set O for Variable Read Event
+            ve.setO(_self.o);
+    	}
+    	
         if (event.getLineNo() == -1 && _self.o.debugInfo != null) {
             event.setLineNo(_self.o.debugInfo.startLine);
         }
@@ -197,5 +226,10 @@ abstract class ACTIVITY extends BpelJacobRunnable implements IndexedObject {
         public String toString() {
             return type + "::" + aid;
         }
+    }
+
+	// AO4ODE: Getter for ActivityInfo
+    public ActivityInfo getActivityInfo() {
+    	return _self;
     }
 }

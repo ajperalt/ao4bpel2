@@ -24,7 +24,8 @@ import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.runtime.channels.ParentScopeChannel;
 import org.apache.ode.bpel.runtime.channels.TerminationChannel;
 
-class ActivityInfo implements Serializable {
+// AO4ODE: changed visibility to public TODO: REMOVE
+public class ActivityInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
     /** Activity instance identifier */
@@ -61,4 +62,16 @@ class ActivityInfo implements Serializable {
         return (int)aId;
     }
 
+    // AO4ODE: Getter for OActivity
+    public OActivity getO() {
+		return o;
+	}
+
+	public TerminationChannel getSelf() {
+		return self;
+	}
+
+	public ParentScopeChannel getParent() {
+		return parent;
+	}
 }

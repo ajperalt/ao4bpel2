@@ -126,6 +126,7 @@ import org.apache.ode.utils.xsd.XsdException;
 import org.apache.ode.utils.xsl.XslTransformHandler;
 import org.apache.xerces.xni.parser.XMLEntityResolver;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
@@ -963,8 +964,88 @@ public abstract class BpelCompiler implements CompilerContext {
             }
         });
 
+        // AO4ODE: Add XPath to compiled activites
+        oact.setXPath(createXPath(source.getElement()));
+        
         return oact;
     }
+    
+    // AO4ODE: Create XPath
+    public static String createXPath(Node n) {
+		Node parent = null;
+		Stack<Node> stack = new Stack<Node>();
+		StringBuffer buffer = new StringBuffer();
+
+		if (null == n) {
+			__log.error("Can't create XPPath, node is null!");
+			return null;
+		}
+		stack.push(n);
+
+		parent = n.getParentNode();
+		while (null != parent && parent.getNodeType() != Node.DOCUMENT_NODE) {
+			stack.push(parent);
+			parent = parent.getParentNode();
+		}
+
+		// construct xpath
+		Node currentNode = null;
+		while (!stack.isEmpty() && null != (currentNode = stack.pop())) {
+
+			boolean handled = false;
+
+			// only consider elements
+			if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
+				Element e = (Element) currentNode;
+
+				// is this the root element?
+				if (buffer.length() == 0) {
+					// root element - simply append element name
+					buffer.append(currentNode.getLocalName());
+				}
+				else {
+					// child element - append slash and element name
+					buffer.append("/");
+					buffer.append(currentNode.getLocalName());
+
+					if (currentNode.hasAttributes()) {
+						// see if the element has a name or id attribute
+						if (e.hasAttribute("id")) {
+							// id attribute found - use that
+							buffer.append("[@id='" + e.getAttribute("id")
+									+ "']");
+							handled = true;
+						}
+						else if (e.hasAttribute("name")) {
+							// name attribute found - use that
+							buffer.append("[@name='" + e.getAttribute("name")
+									+ "']");
+							handled = true;
+						}
+					}
+
+					if (!handled) {
+						// no known attribute we could use - get sibling index
+						int prev_siblings = 1;
+						Node prev_sibling = currentNode.getPreviousSibling();
+						while (null != prev_sibling) {
+							if (prev_sibling.getNodeType() == currentNode
+									.getNodeType()) {
+								if (prev_sibling.getLocalName()
+										.equalsIgnoreCase(currentNode.getLocalName())) {
+									prev_siblings++;
+								}
+							}
+							prev_sibling = prev_sibling.getPreviousSibling();
+						}
+						buffer.append("[" + prev_siblings + "]");
+					}
+				}
+			}
+		}
+
+		return buffer.toString();
+	}
 
     private void compileLinks(Activity source) {
         /* Source Links Fixup */

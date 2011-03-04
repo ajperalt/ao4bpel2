@@ -224,5 +224,10 @@ public class OScope extends OActivity {
     		partnerLinks.clear();
     	}
     }
+    
+    // AO4ODE: accept ASTVisitor
+    public void accept(ASTVisitor visitor) {
+    	visitor.visit(this);
+    }
 
 }

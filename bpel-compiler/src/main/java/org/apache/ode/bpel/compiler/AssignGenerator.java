@@ -71,6 +71,10 @@ class AssignGenerator extends DefaultActivityGenerator {
             ocopy.insertMissingToData = scopy.isInsertMissingToData();
             ocopy.debugInfo = new DebugInfo(_context.getSourceLocation(), scopy.getLineNo(),
                     source.getExtensibilityElements());
+            
+            // AO4ODE: Add XPath to Copy
+            ocopy.setXPath(BpelCompiler.createXPath(scopy.getElement()));
+            
             try {
                 if (scopy.getTo() == null)
                     throw new CompilationException(__cmsgs.errMissingToSpec().setSource(scopy));

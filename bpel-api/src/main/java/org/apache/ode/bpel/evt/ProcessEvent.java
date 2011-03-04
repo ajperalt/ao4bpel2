@@ -20,6 +20,8 @@ package org.apache.ode.bpel.evt;
 
 import javax.xml.namespace.QName;
 
+import org.apache.ode.bpel.o.OProcess;
+
 /**
  * Base class for process events.
  */
@@ -27,7 +29,11 @@ public abstract class ProcessEvent extends BpelEvent {
 
   private QName _processId;
   private QName _processname;
-
+  
+  // AO4ODE: Reference to OProcess
+  private OProcess _oprocess;
+  
+  
   public ProcessEvent() {
   }
 
@@ -51,6 +57,15 @@ public abstract class ProcessEvent extends BpelEvent {
    */
   public QName getProcessName() {
     return _processname;
+  }
+  
+  // AO4ODE:
+  public void setOProcess(OProcess oprocess) {
+	  this._oprocess = oprocess;
+  }
+  
+  public OProcess getOProcess() {	
+	return _oprocess;
   }
 
 }

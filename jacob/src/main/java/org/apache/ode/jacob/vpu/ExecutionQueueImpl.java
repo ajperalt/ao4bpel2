@@ -84,7 +84,8 @@ public class ExecutionQueueImpl implements ExecutionQueue {
      * forward progress; this scenario would occur if a maximum processign
      * time-per-instance policy were in effect.
      */
-    private Set<Continuation> _reactions = new HashSet<Continuation>();
+    // AO4ODE: Changed visibility to protected
+    protected Set<Continuation> _reactions = new HashSet<Continuation>();
 
     private Map<Integer, ChannelFrame> _channels = new HashMap<Integer, ChannelFrame>();
 

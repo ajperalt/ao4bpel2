@@ -221,4 +221,9 @@ public class OProcess extends OBase {
     public String digest() {
         return processName + ";" + procesScope.digest();
     }
+    
+    // AO4ODE: accept ASTVisitor
+    public void accept(ASTVisitor visitor) {
+    	visitor.visit(this);
+    }
 }

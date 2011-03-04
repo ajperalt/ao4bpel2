@@ -80,6 +80,10 @@ import org.apache.ode.store.ProcessStoreImpl;
 import org.apache.ode.utils.GUID;
 import org.apache.ode.utils.fs.TempFileManager;
 
+import de.tud.stg.ao4ode.DynamicFactsBpelEventListener;
+
+import de.tud.stg.bpel.ao4ode.BpelFactsManager;
+
 /**
  * Server class called by our Axis hooks to handle all ODE lifecycle management.
  *
@@ -187,8 +191,12 @@ public class ODEServer {
         registerMexInterceptors();
         registerExternalVariableModules();
 
+        // AO4ODE: Initialize AO4ODE
+        __log.debug("AO4ODE: Initializing...");
+        initAO4ODE();
+        
         _store.loadAll();
-
+        
         try {
             _bpelServer.start();
         } catch (Exception ex) {
@@ -204,7 +212,7 @@ public class ODEServer {
 
         _mgtService = new ManagementService();
         _mgtService.enableService(_axisConfig, _bpelServer, _store, _appRoot.getAbsolutePath());
-
+        
         try {
             __log.debug("Initializing Deployment Web Service");
             new DeploymentWebService().enableService(_axisConfig, _store, _poller, _appRoot.getAbsolutePath(), _workRoot.getAbsolutePath());
@@ -222,6 +230,22 @@ public class ODEServer {
         __log.info(__msgs.msgPollingStarted(_store.getDeployDir().getAbsolutePath()));
         __log.info(__msgs.msgOdeStarted());
     }
+    
+    // AO4ODE: register history listeners
+    private void initAO4ODE() {
+    	// TODO: REMOVE
+    	/*
+    	BpelHistory history = BpelHistory.getInstance();
+    	BpelLogHistoryListener logHistory = new BpelLogHistoryListener();
+    	BpelPrologHistoryListener prologHistory = new BpelPrologHistoryListener(); 
+    	history.addListener(logHistory);    	
+    	history.addListener(prologHistory);
+    	*/
+    	
+    	// Register BpelEventListenr to collect dynamic facts
+    	DynamicFactsBpelEventListener dynFactsListener = new DynamicFactsBpelEventListener();
+    	_bpelServer.registerBpelEventListener(dynFactsListener);
+	}
 
     @SuppressWarnings("unchecked")
     private DeploymentPoller getDeploymentPollerExt() {

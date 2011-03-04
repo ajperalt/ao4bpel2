@@ -32,6 +32,9 @@ public class OBase implements Serializable {
     private final int       _id;
     private final OProcess  _owner;
 
+    // AO4ODE: XPath
+    protected String xpath;
+    
     public DebugInfo debugInfo;
 
     protected OBase(OProcess owner) {
@@ -43,6 +46,9 @@ public class OBase implements Serializable {
             _owner._children.add(this);
         }
         assert _id == 0 || _owner != null;
+        
+        // AO4ODE: Set XPath to null
+        this.xpath = null;
     }
 
     public OProcess getOwner() {
@@ -82,5 +88,18 @@ public class OBase implements Serializable {
     	
     public String digest() {
         return "";
+    }
+    
+    // AO4ODE: Accept ASTVisitor, Get XPath
+    public void accept(ASTVisitor visitor) {
+    	visitor.visit(this);
+    }
+    
+    public void setXPath(String xpath) {
+    	this.xpath = xpath;
+    }
+    
+    public String getXPath() {    	
+    	return xpath;
     }
 }

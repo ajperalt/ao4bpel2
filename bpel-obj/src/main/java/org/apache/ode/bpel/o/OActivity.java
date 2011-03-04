@@ -104,4 +104,9 @@ public abstract class OActivity extends OAgent {
         buf.append("}");
         return buf.toString();
     }
+    
+    // AO4ODE: accept ASTVisitor
+    public void accept(ASTVisitor visitor) {
+    	visitor.visit(this);
+    }
 }

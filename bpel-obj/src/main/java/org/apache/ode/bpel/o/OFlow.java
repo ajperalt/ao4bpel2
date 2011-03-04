@@ -46,5 +46,10 @@ public class OFlow extends OActivity {
             }
         });
     }
+    
+    // AL: accept ASTVisitor
+    public void accept(ASTVisitor visitor) {
+    	visitor.visit(this);
+    }
 
 }

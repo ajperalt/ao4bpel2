@@ -28,6 +28,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.common.FaultException;
 import org.apache.ode.bpel.evt.ActivityFailureEvent;
 import org.apache.ode.bpel.evt.ActivityRecoveryEvent;
+import org.apache.ode.bpel.evt.InvokeExecEndEvent;
+import org.apache.ode.bpel.evt.InvokeExecStartEvent;
 import org.apache.ode.bpel.evt.VariableModificationEvent;
 import org.apache.ode.bpel.o.OFailureHandling;
 import org.apache.ode.bpel.o.OInvoke;
@@ -38,6 +40,7 @@ import org.apache.ode.bpel.runtime.channels.FaultData;
 import org.apache.ode.bpel.runtime.channels.InvokeResponseChannel;
 import org.apache.ode.bpel.runtime.channels.InvokeResponseChannelListener;
 import org.apache.ode.bpel.runtime.channels.TerminationChannelListener;
+import org.apache.ode.bpel.runtime.facts.ODEInvokeFact;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.bpel.evar.ExternalVariableModuleException;
 import org.w3c.dom.Element;
@@ -67,6 +70,7 @@ public class INVOKE extends ACTIVITY {
     }
 
     public final void run() {
+    	    	
         Element outboundMsg;
         try {
             outboundMsg = setupOutbound(_oinvoke, _oinvoke.initCorrelationsInput, _oinvoke.joinCorrelationsInput);
@@ -91,6 +95,11 @@ public class INVOKE extends ACTIVITY {
                 getBpelRuntimeContext().invoke(_oinvoke.getId(),
                         _scopeFrame.resolve(_oinvoke.partnerLink),
                         _oinvoke.operation, outboundMsg, null);
+                
+                // AO4ODE: AfterInvokeOneWay              	
+                InvokeExecEndEvent ieee = new InvokeExecEndEvent(_oinvoke, null);
+                sendEvent(ieee);
+                
                 _self.parent.completed(faultData, CompensationHandler.emptySet());
 
             } else /* two-way */{
@@ -164,6 +173,11 @@ public class INVOKE extends ACTIVITY {
 
                         // TODO update output variable with data from non-initiate correlation sets
 
+                        
+                        // AO4ODE: AfterInvokeOneWay              	
+                        InvokeExecEndEvent ieee = new InvokeExecEndEvent(_oinvoke, response);
+                        sendEvent(ieee);
+                        
                         _self.parent.completed(fault, CompensationHandler.emptySet());
                         getBpelRuntimeContext().releasePartnerMex(mexId, fault == null);
                     }
@@ -229,4 +243,7 @@ public class INVOKE extends ACTIVITY {
             return (Element) outboundMsg;
         } else return null;
     }
+    
+    // AO4ODE: Refine INVOKE Events
+    
 }

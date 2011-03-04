@@ -33,4 +33,9 @@ public class OSequence extends OActivity {
     public OSequence(OProcess owner, OActivity parent) {
         super(owner, parent);
     }
+    
+    // AO4ODE: accept ASTVisitor
+    public void accept(ASTVisitor visitor) {
+    	visitor.visit(this);
+    }
 }

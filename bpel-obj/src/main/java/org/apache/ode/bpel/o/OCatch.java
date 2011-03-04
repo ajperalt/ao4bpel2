@@ -35,4 +35,9 @@ public final class OCatch extends OScope {
     public String toString() {
         return "{OCatch faultName=" + faultName + ", faultVariable=" + faultVariable + "}";
     }
+    
+    // AO4ODE: accept ASTVisitor
+	public void accept(ASTVisitor visitor) {
+		visitor.visit(this);
+	}
 }

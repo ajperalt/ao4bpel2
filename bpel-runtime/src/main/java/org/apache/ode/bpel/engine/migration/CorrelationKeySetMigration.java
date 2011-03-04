@@ -33,6 +33,8 @@ import org.apache.ode.jacob.vpu.ExecutionQueueImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import de.tud.stg.ao4ode.AO4ODEExecutionQueueImpl;
+
 import javax.xml.namespace.QName;
 import java.util.Set;
 import java.util.Collection;
@@ -153,7 +155,8 @@ public class CorrelationKeySetMigration implements Migration {
                                             ClassLoader cl, boolean changeKey) {
         if (instance.getExecutionState() == null) return null;
         try {
-            ExecutionQueueImpl soup = new ExecutionQueueImpl(cl);
+        	// AO4ODE: Use AO4BPEL ExeciutionQueueImpl
+            ExecutionQueueImpl soup = new AO4ODEExecutionQueueImpl(cl, null);
             ObjectStreamClass osc;
             if (changeKey) {
                 osc = ObjectStreamClass.lookup(Class.forName(

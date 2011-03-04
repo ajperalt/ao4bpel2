@@ -89,4 +89,10 @@ public class OInvoke extends OActivity {
     		}
     	}
     }
+    
+    // AO4ODE: accept ASTVisitor
+    public void accept(ASTVisitor visitor) {
+    	visitor.visit(this);
+    }
+    
 }

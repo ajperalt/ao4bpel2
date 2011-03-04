@@ -18,8 +18,11 @@
  */
 package org.apache.ode.bpel.evt;
 
+import org.apache.ode.bpel.o.OBase;
+
 public abstract class VariableEvent extends ScopeEvent {
   private String _varName;
+  private OBase obase;
 
   public VariableEvent() {
     super();
@@ -40,5 +43,14 @@ public abstract class VariableEvent extends ScopeEvent {
 
   public TYPE getType() {
     return TYPE.dataHandling;
+  }
+  
+  // AO4ODE: Getter/Setter for OBase
+  public void setO(OBase obase) {
+	  this.obase = obase;
+  }
+
+  public OBase getO() {
+	  return obase;
   }
 }
