@@ -67,8 +67,15 @@ public class DynamicFactsBpelEventListener implements BpelEventListener {
 		// After  Invoke
 		else if(bpelEvent instanceof InvokeExecEndEvent) {
 			InvokeExecEndEvent invokeEvent = (InvokeExecEndEvent)bpelEvent;
-			bfm.afterInvoke(invokeEvent.getProcessInstanceId(),
-					new ODEInvokeFact(invokeEvent.getOinvoke()));			
+			
+			if(invokeEvent.getResponse() != null) {
+				bfm.afterInvoke(invokeEvent.getProcessInstanceId(),
+					new ODEInvokeFact(invokeEvent.getOinvoke(), invokeEvent.getResponse()));
+			}
+			else {
+				bfm.afterInvoke(invokeEvent.getProcessInstanceId(),
+						new ODEInvokeFact(invokeEvent.getOinvoke()));
+			}
 		}
 
 		// Process execution start and completion events
