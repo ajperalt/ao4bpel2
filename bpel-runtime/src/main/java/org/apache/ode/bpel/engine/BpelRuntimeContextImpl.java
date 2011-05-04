@@ -110,9 +110,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Document;
 
-import de.tud.stg.bpel.ao4ode.BpelFactsManager;
+import de.tud.stg.ao4ode.facts.BpelFactsManager;
+import de.tud.stg.ao4ode.runtime.AO4ODEExecutionQueueImpl;
 
-import de.tud.stg.ao4ode.AO4ODEExecutionQueueImpl;
 
 public class BpelRuntimeContextImpl implements BpelRuntimeContext {
 

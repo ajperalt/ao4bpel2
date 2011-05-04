@@ -40,11 +40,12 @@ import org.apache.ode.bpel.runtime.channels.FaultData;
 import org.apache.ode.bpel.runtime.channels.InvokeResponseChannel;
 import org.apache.ode.bpel.runtime.channels.InvokeResponseChannelListener;
 import org.apache.ode.bpel.runtime.channels.TerminationChannelListener;
-import org.apache.ode.bpel.runtime.facts.ODEInvokeFact;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.bpel.evar.ExternalVariableModuleException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import de.tud.stg.ao4ode.runtime.facts.ODEInvokeFact;
 
 /**
  * JacobRunnable that performs the work of the <code>invoke</code> activity.

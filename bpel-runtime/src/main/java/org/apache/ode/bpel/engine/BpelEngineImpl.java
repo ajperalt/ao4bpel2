@@ -63,14 +63,14 @@ import org.apache.ode.bpel.o.OConstants;
 import org.apache.ode.bpel.o.OPartnerLink;
 import org.apache.ode.bpel.o.OProcess;
 import org.apache.ode.bpel.runtime.InvalidProcessException;
-import org.apache.ode.bpel.runtime.facts.ODEBpelProcess;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.utils.Namespaces;
 import org.apache.ode.utils.msg.MessageBundle;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import de.tud.stg.bpel.ao4ode.BpelFactsManager;
+import de.tud.stg.ao4ode.facts.BpelFactsManager;
+import de.tud.stg.ao4ode.runtime.facts.ODEBpelProcess;
 
 /**
  * Implementation of the {@link BpelEngine} interface: provides the server methods that should be invoked in the context of a

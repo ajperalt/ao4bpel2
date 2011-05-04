@@ -50,7 +50,6 @@ import org.apache.ode.bpel.runtime.channels.ActivityRecoveryChannel;
 import org.apache.ode.bpel.runtime.channels.ActivityRecoveryChannelListener;
 import org.apache.ode.bpel.runtime.channels.TimerResponseChannel;
 import org.apache.ode.bpel.runtime.channels.TimerResponseChannelListener;
-import org.apache.ode.bpel.runtime.facts.ODEInvokeFact;
 import org.apache.ode.jacob.ChannelListener;
 import org.apache.ode.jacob.SynchChannel;
 import org.apache.ode.utils.DOMUtils;
@@ -63,6 +62,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
+
+import de.tud.stg.ao4ode.runtime.facts.ODEInvokeFact;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

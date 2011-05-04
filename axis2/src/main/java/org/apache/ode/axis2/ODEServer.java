@@ -80,9 +80,9 @@ import org.apache.ode.store.ProcessStoreImpl;
 import org.apache.ode.utils.GUID;
 import org.apache.ode.utils.fs.TempFileManager;
 
-import de.tud.stg.ao4ode.DynamicFactsBpelEventListener;
 
-import de.tud.stg.bpel.ao4ode.BpelFactsManager;
+import de.tud.stg.ao4ode.facts.BpelFactsManager;
+import de.tud.stg.ao4ode.runtime.DynamicFactsBpelEventListener;
 
 /**
  * Server class called by our Axis hooks to handle all ODE lifecycle management.
