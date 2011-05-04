@@ -21,6 +21,13 @@ package org.apache.ode.bpel.runtime;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.common.FaultException;
+import org.apache.ode.bpel.compiler.BpelC;
+import org.apache.ode.bpel.compiler.BpelCompiler;
+import org.apache.ode.bpel.compiler.BpelCompiler20;
+import org.apache.ode.bpel.compiler.bom.Bpel11QNames;
+import org.apache.ode.bpel.compiler.bom.Bpel20QNames;
+import org.apache.ode.bpel.compiler.bom.BpelObjectFactory;
+import org.apache.ode.bpel.compiler.bom.DOMBuilderContentHandler;
 import org.apache.ode.bpel.evt.ActivityEnabledEvent;
 import org.apache.ode.bpel.evt.ActivityExecEndEvent;
 import org.apache.ode.bpel.evt.ActivityExecStartEvent;
@@ -46,9 +53,22 @@ import org.apache.ode.bpel.runtime.channels.TimerResponseChannelListener;
 import org.apache.ode.bpel.runtime.facts.ODEInvokeFact;
 import org.apache.ode.jacob.ChannelListener;
 import org.apache.ode.jacob.SynchChannel;
+import org.apache.ode.utils.DOMUtils;
+import org.apache.ode.utils.XMLParserUtils;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
+import org.xml.sax.XMLReader;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,6 +105,7 @@ public class ACTIVITYGUARD extends ACTIVITY {
             _firstTime = false;
         }
 
+        /* we know all our links statuses */
         if (_linkVals.keySet().containsAll(_oactivity.targetLinks)) {
             if (evaluateJoinCondition()) {
                 ActivityExecStartEvent aese = new ActivityExecStartEvent();
@@ -97,9 +118,24 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 }
                 
                 // intercept completion channel in order to execute transition conditions.
-                ActivityInfo activity = new ActivityInfo(genMonotonic(),_self.o,_self.self, newChannel(ParentScopeChannel.class));
+                ActivityInfo activity = new ActivityInfo(genMonotonic(),
+                		_self.o,
+                		_self.self,
+                		newChannel(ParentScopeChannel.class));
+                
+                // AO4ODE: TODO: Call aspect manager                
+                // Before advice. For testing, just execute invoke activity twice
+                String pc = "process/sequence[1]/invoke[@name='invokeConcatAdvice']";
+                if(activity.getO().getXPath() != null &&                		
+                		activity.getO().getXPath().equals(pc)) {
+                	
+                	__log.info("Executing before advice for PC " + pc );                	
+                	
+                }
+                
                 instance(createActivity(activity));
                 instance(new TCONDINTERCEPT(activity.parent));
+                
             } else {
                 if (_oactivity.suppressJoinFailure) {
                     _self.parent.completed(null, CompensationHandler.emptySet());

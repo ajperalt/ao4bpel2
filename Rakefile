@@ -72,7 +72,7 @@ define "ode" do
   desc "ODE Axis Integration Layer"
   define "axis2" do
     compile.with projects("bpel-api", "bpel-connector", "bpel-dao", "bpel-epr", "bpel-runtime",
-      "scheduler-simple", "bpel-schemas", "bpel-store", "utils", "agents", "bpel-facts-manager"),
+      "scheduler-simple", "bpel-schemas", "bpel-store", "utils", "agents", "ao4bpel-facts-manager"),
       AXIOM, AXIS2_ALL, COMMONS.lang, COMMONS.logging, COMMONS.collections, COMMONS.httpclient, COMMONS.lang, 
       DERBY, GERONIMO.kernel, GERONIMO.transaction, JAVAX.activation, JAVAX.servlet, JAVAX.stream, 
       JAVAX.transaction, JENCKS, WSDL4J, WS_COMMONS, XMLBEANS, AXIS2_MODULES.libs
@@ -88,14 +88,14 @@ define "ode" do
     libs = projects("axis2", "bpel-api", "bpel-compiler", "bpel-connector", "bpel-dao",
       "bpel-epr", "bpel-obj", "bpel-ql", "bpel-runtime", "scheduler-simple",
       "bpel-schemas", "bpel-store", "dao-hibernate", "jacob", "jca-ra", "jca-server",
-      "utils", "dao-jpa", "agents",  "bpel-facts-manager"),
+      "utils", "dao-jpa", "agents",  "ao4bpel-facts-manager"),
       AXIS2_ALL, ANNONGEN, BACKPORT, COMMONS.codec, COMMONS.collections, COMMONS.fileupload, COMMONS.io, COMMONS.httpclient, COMMONS.beanutils,
       COMMONS.lang, COMMONS.logging, COMMONS.pool, DERBY, DERBY_TOOLS, JAXEN, JAVAX.activation, JAVAX.ejb, JAVAX.javamail,
       JAVAX.connector, JAVAX.jms, JAVAX.persistence, JAVAX.transaction, JAVAX.stream,  JIBX,
       GERONIMO.connector, GERONIMO.kernel, GERONIMO.transaction, LOG4J, OPENJPA, SAXON, TRANQL,
       WOODSTOX, WSDL4J, WS_COMMONS, XALAN, XERCES, XMLBEANS, SPRING,
       AXIS2_MODULES.libs,
-	_('../bpel-facts-manager/lib/tuprolog.jar'), _('../bpel-facts-manager/lib/2p.jar')
+	_('../ao4bpel-facts-manager/lib/tuprolog.jar'), _('../ao4bpel-facts-manager/lib/2p.jar')
 
     package(:war).with(:libs=>libs).path("WEB-INF").tap do |web_inf|
       web_inf.merge project("dao-jpa-ojpa-derby").package(:zip)
@@ -122,7 +122,7 @@ define "ode" do
     end
     
     test.using :testng, :properties=>{ "log4j.debug" => true,  "log4j.configuration"=>"test-log4j.properties", "test.ports" => ENV['TEST_PORTS'] }
-    test.with projects("tools", "bpel-facts-manager"), libs, AXIS2_TEST, AXIOM, JAVAX.servlet, Buildr::Jetty::REQUIRES, HIBERNATE, DOM4J, SLF4J, LOG4J, _('../bpel-facts-manager/lib/tuprolog.jar'), _('../bpel-facts-manager/lib/2p.jar')
+    test.with projects("tools", "ao4bpel-facts-manager"), libs, AXIS2_TEST, AXIOM, JAVAX.servlet, Buildr::Jetty::REQUIRES, HIBERNATE, DOM4J, SLF4J, LOG4J, _('../ao4bpel-facts-manager/lib/tuprolog.jar'), _('../ao4bpel-facts-manager/lib/2p.jar')
     webapp_dir = "#{test.compile.target}/webapp"
     test.setup task(:prepare_webapp) do |task|
       cp_r _("src/main/webapp"), test.compile.target.to_s
@@ -203,7 +203,7 @@ define "ode" do
 
   #-AO4ODE-2011-03-11
   desc "BPEL Facts Manager"
-  define "bpel-facts-manager" do
+  define "ao4bpel-facts-manager" do
     compile.with project("utils"), project("jacob"), COMMONS.logging, WSDL4J, _('lib/tuprolog.jar'), _('lib/2p.jar')
     package :jar
   end
@@ -222,18 +222,19 @@ define "ode" do
   desc "ODE Runtime Engine"
   define "bpel-runtime" do
     compile.from apt
+# TODO: REMOVE: XALAN, XERCES
     compile.with projects("bpel-api", "bpel-compiler", "bpel-dao", "bpel-epr", "bpel-obj", "bpel-schemas",
-      "bpel-store", "jacob", "jacob-ap", "utils", "agents", "bpel-facts-manager"),
+      "bpel-store", "jacob", "jacob-ap", "utils", "agents", "ao4bpel-facts-manager"),
       COMMONS.logging, COMMONS.collections, COMMONS.httpclient, JAXEN, JAVAX.persistence, JAVAX.stream, SAXON, WSDL4J, XMLBEANS,
-      SPRING
+      SPRING, XALAN, XERCES
 
 
-    test.with projects("scheduler-simple", "dao-jpa", "dao-hibernate", "bpel-epr", "bpel-facts-manager"),
+    test.with projects("scheduler-simple", "dao-jpa", "dao-hibernate", "bpel-epr", "ao4bpel-facts-manager"),
         BACKPORT, COMMONS.pool, COMMONS.lang, COMMONS.io, DERBY, JAVAX.connector, JAVAX.transaction,
         GERONIMO.transaction, GERONIMO.kernel, GERONIMO.connector, TRANQL, HSQLDB, JAVAX.ejb,
         OPENJPA, XERCES, XALAN, LOG4J, SLF4J,
         DOM4J, HIBERNATE,
-        "tranql:tranql-connector-derby-common:jar:1.1", _('../bpel-facts-manager/lib/tuprolog.jar'), _('../bpel-facts-manager/lib/2p.jar')
+        "tranql:tranql-connector-derby-common:jar:1.1", _('../ao4bpel-facts-manager/lib/tuprolog.jar'), _('../ao4bpel-facts-manager/lib/2p.jar')
 
     package :jar
   end
@@ -430,7 +431,7 @@ define "ode" do
 
     test.using :properties=>{ "java.naming.factory.initial" => "org.apache.xbean.spring.jndi.SpringInitialContextFactory"}, :java_args=>ENV['TEST_JVM_ARGS']
     test.with projects("dao-jpa", "dao-hibernate", "bpel-compiler", "bpel-api-jca", "jca-ra",
-      "jca-server", "jacob", "bpel-facts-manager"),
+      "jca-server", "jacob", "ao4bpel-facts-manager"),
       BACKPORT, COMMONS.lang, COMMONS.io, COMMONS.collections, DERBY, GERONIMO.connector, GERONIMO.kernel,
       GERONIMO.transaction, JAVAX.connector, JAVAX.ejb, JAVAX.persistence, JAVAX.stream,
       JAVAX.transaction, JAXEN, JBI, OPENJPA, SAXON, SERVICEMIX, SPRING, TRANQL,
@@ -438,7 +439,7 @@ define "ode" do
       SLF4J,
       LOG4J,
       DOM4J,
-      HIBERNATE, _('../bpel-facts-manager/lib/tuprolog.jar'), _('../bpel-facts-manager/lib/2p.jar')
+      HIBERNATE, _('../ao4bpel-facts-manager/lib/tuprolog.jar'), _('../ao4bpel-facts-manager/lib/2p.jar')
 
       test.setup unzip(_("target/test/smx/ode")=>project("dao-jpa-ojpa-derby").package(:zip))
       test.setup unzip(_("target/test/smx/ode")=>project("dao-hibernate-db").package(:zip))
@@ -638,8 +639,8 @@ define "apache-ode" do
         # Libraries
         zip.path("lib").include artifacts(COMMONS.logging, COMMONS.codec, COMMONS.httpclient,
           COMMONS.pool, COMMONS.collections, JAXEN, SAXON, LOG4J, WSDL4J, XALAN, XERCES,
-			_('bpel-facts-manager/lib/tuprolog.jar'), _('bpel-facts-manager/lib/2p.jar'))
-        project("ode").projects("utils", "tools", "bpel-compiler", "bpel-api", "bpel-obj", "bpel-schemas", "bpel-facts-manager").
+			_('ao4bpel-facts-manager/lib/tuprolog.jar'), _('ao4bpel-facts-manager/lib/2p.jar'))
+        project("ode").projects("utils", "tools", "bpel-compiler", "bpel-api", "bpel-obj", "bpel-schemas", "ao4bpel-facts-manager").
           map(&:packages).flatten.each do |pkg|
           zip.include(pkg.to_s, :as=>"#{pkg.id}.#{pkg.type}", :path=>"lib")
         end
