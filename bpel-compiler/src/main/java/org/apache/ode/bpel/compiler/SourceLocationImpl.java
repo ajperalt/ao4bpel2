@@ -22,14 +22,16 @@ import java.net.URI;
 
 import org.apache.ode.bpel.compiler.api.SourceLocation;
 
-class SourceLocationImpl implements SourceLocation {
+// AO4ODE: changed visibility to public
+public class SourceLocationImpl implements SourceLocation {
 
     private int _col;
     private int _line;
     private String _path;
     private URI _uri;
 
-    SourceLocationImpl(URI uri) {
+    // AO4ODE: changed visibility to public
+    public SourceLocationImpl(URI uri) {
         _uri = uri;
     }
     

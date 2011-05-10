@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:axis2="http://stg.tu-darmstadt.de/counterService" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:ns="http://ws.ao4bpel.stg.tud.de" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://stg.tu-darmstadt.de/counterService">
+    <wsdl:documentation>CounterService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://ws.ao4bpel.stg.tud.de">
+            <xs:element name="increment">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="incrementResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCountersResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ns:ArrayOfString"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:complexType name="ArrayOfString">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="array" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="getCount">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCountResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="getCountersRequest"/>
+    <wsdl:message name="getCountersResponse">
+        <wsdl:part name="parameters" element="ns:getCountersResponse"/>
+    </wsdl:message>
+    <wsdl:message name="incrementRequest">
+        <wsdl:part name="parameters" element="ns:increment"/>
+    </wsdl:message>
+    <wsdl:message name="incrementResponse">
+        <wsdl:part name="parameters" element="ns:incrementResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getCountRequest">
+        <wsdl:part name="parameters" element="ns:getCount"/>
+    </wsdl:message>
+    <wsdl:message name="getCountResponse">
+        <wsdl:part name="parameters" element="ns:getCountResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="CounterServicePortType">
+        <wsdl:operation name="getCounters">
+            <wsdl:input message="axis2:getCountersRequest" wsaw:Action="urn:getCounters"/>
+            <wsdl:output message="axis2:getCountersResponse" wsaw:Action="urn:getCountersResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="increment">
+            <wsdl:input message="axis2:incrementRequest" wsaw:Action="urn:increment"/>
+            <wsdl:output message="axis2:incrementResponse" wsaw:Action="urn:incrementResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="getCount">
+            <wsdl:input message="axis2:getCountRequest" wsaw:Action="urn:getCount"/>
+            <wsdl:output message="axis2:getCountResponse" wsaw:Action="urn:getCountResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="CounterServiceSoap11Binding" type="axis2:CounterServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getCounters">
+            <soap:operation soapAction="urn:getCounters" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="increment">
+            <soap:operation soapAction="urn:increment" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getCount">
+            <soap:operation soapAction="urn:getCount" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="CounterServiceSoap12Binding" type="axis2:CounterServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getCounters">
+            <soap12:operation soapAction="urn:getCounters" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="increment">
+            <soap12:operation soapAction="urn:increment" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getCount">
+            <soap12:operation soapAction="urn:getCount" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="CounterServiceHttpBinding" type="axis2:CounterServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="getCounters">
+            <http:operation location="CounterService/getCounters"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="getCounters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="getCounters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="increment">
+            <http:operation location="CounterService/increment"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="increment"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="increment"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getCount">
+            <http:operation location="CounterService/getCount"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="getCount"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="getCount"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="CounterService">
+        <wsdl:port name="CounterServiceHttpSoap11Endpoint" binding="axis2:CounterServiceSoap11Binding">
+            <soap:address location="http://localhost:8080/axis2/services/CounterService.CounterServiceHttpSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="CounterServiceHttpSoap12Endpoint" binding="axis2:CounterServiceSoap12Binding">
+            <soap12:address location="http://localhost:8080/axis2/services/CounterService.CounterServiceHttpSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="CounterServiceHttpEndpoint" binding="axis2:CounterServiceHttpBinding">
+            <http:address location="http://localhost:8080/axis2/services/CounterService.CounterServiceHttpEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

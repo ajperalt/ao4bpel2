@@ -72,7 +72,7 @@ define "ode" do
   desc "ODE Axis Integration Layer"
   define "axis2" do
     compile.with projects("bpel-api", "bpel-connector", "bpel-dao", "bpel-epr", "bpel-runtime",
-      "scheduler-simple", "bpel-schemas", "bpel-store", "utils", "agents", "ao4bpel-facts-manager"),
+      "scheduler-simple", "bpel-schemas", "bpel-store", "utils", "agents", "ao4bpel-facts-manager", "ao4bpel-aspect-manager"),
       AXIOM, AXIS2_ALL, COMMONS.lang, COMMONS.logging, COMMONS.collections, COMMONS.httpclient, COMMONS.lang, 
       DERBY, GERONIMO.kernel, GERONIMO.transaction, JAVAX.activation, JAVAX.servlet, JAVAX.stream, 
       JAVAX.transaction, JENCKS, WSDL4J, WS_COMMONS, XMLBEANS, AXIS2_MODULES.libs
@@ -88,7 +88,7 @@ define "ode" do
     libs = projects("axis2", "bpel-api", "bpel-compiler", "bpel-connector", "bpel-dao",
       "bpel-epr", "bpel-obj", "bpel-ql", "bpel-runtime", "scheduler-simple",
       "bpel-schemas", "bpel-store", "dao-hibernate", "jacob", "jca-ra", "jca-server",
-      "utils", "dao-jpa", "agents",  "ao4bpel-facts-manager"),
+      "utils", "dao-jpa", "agents",  "ao4bpel-facts-manager", "ao4bpel-compiler", "ao4bpel-aspect-manager"),
       AXIS2_ALL, ANNONGEN, BACKPORT, COMMONS.codec, COMMONS.collections, COMMONS.fileupload, COMMONS.io, COMMONS.httpclient, COMMONS.beanutils,
       COMMONS.lang, COMMONS.logging, COMMONS.pool, DERBY, DERBY_TOOLS, JAXEN, JAVAX.activation, JAVAX.ejb, JAVAX.javamail,
       JAVAX.connector, JAVAX.jms, JAVAX.persistence, JAVAX.transaction, JAVAX.stream,  JIBX,
@@ -201,13 +201,25 @@ define "ode" do
     package :jar
   end
 
-  #-AO4ODE-2011-03-11
+  # AO4ODE
   desc "BPEL Facts Manager"
   define "ao4bpel-facts-manager" do
     compile.with project("utils"), project("jacob"), COMMONS.logging, WSDL4J, _('lib/tuprolog.jar'), _('lib/2p.jar')
     package :jar
   end
-  #-AO4ODE-2011-03-11
+
+  desc "BPEL Aspect Compiler"
+  define "ao4bpel-compiler" do
+    compile.with projects("bpel-compiler", "bpel-obj", "utils"), project("jacob"), COMMONS.logging, WSDL4J, _('lib/tuprolog.jar'), _('lib/2p.jar')
+    package :jar
+  end
+
+  desc "BPEL Aspect Manager"
+  define "ao4bpel-aspect-manager" do
+    compile.with projects("ao4bpel-compiler", "ao4bpel-facts-manager", "bpel-compiler", "bpel-obj"), project("jacob"), COMMONS.logging, WSDL4J, _('lib/tuprolog.jar'), _('lib/2p.jar')
+    package :jar
+  end
+  # /AO4ODE
 
   desc "ODE BPEL Query Language"
   define "bpel-ql" do
@@ -222,11 +234,10 @@ define "ode" do
   desc "ODE Runtime Engine"
   define "bpel-runtime" do
     compile.from apt
-# TODO: REMOVE: XALAN, XERCES
     compile.with projects("bpel-api", "bpel-compiler", "bpel-dao", "bpel-epr", "bpel-obj", "bpel-schemas",
-      "bpel-store", "jacob", "jacob-ap", "utils", "agents", "ao4bpel-facts-manager"),
+      "bpel-store", "jacob", "jacob-ap", "utils", "agents", "ao4bpel-facts-manager", "ao4bpel-aspect-manager"),
       COMMONS.logging, COMMONS.collections, COMMONS.httpclient, JAXEN, JAVAX.persistence, JAVAX.stream, SAXON, WSDL4J, XMLBEANS,
-      SPRING, XALAN, XERCES
+      SPRING
 
 
     test.with projects("scheduler-simple", "dao-jpa", "dao-hibernate", "bpel-epr", "ao4bpel-facts-manager"),

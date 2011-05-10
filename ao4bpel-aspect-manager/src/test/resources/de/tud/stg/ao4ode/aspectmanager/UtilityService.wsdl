@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:axis2="http://stg.tu-darmstadt.de/utilityService" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:ns="http://ws.ao4bpel.stg.tud.de" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://stg.tu-darmstadt.de/utilityService">
+    <wsdl:documentation>UtilityService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://ws.ao4bpel.stg.tud.de">
+            <xs:element name="concat">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="string1" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="string2" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="concatResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="concatRequest">
+        <wsdl:part name="parameters" element="ns:concat"/>
+    </wsdl:message>
+    <wsdl:message name="concatResponse">
+        <wsdl:part name="parameters" element="ns:concatResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="UtilityServicePortType">
+        <wsdl:operation name="concat">
+            <wsdl:input message="axis2:concatRequest" wsaw:Action="urn:concat"/>
+            <wsdl:output message="axis2:concatResponse" wsaw:Action="urn:concatResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="UtilityServiceSoap11Binding" type="axis2:UtilityServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="concat">
+            <soap:operation soapAction="urn:concat" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UtilityServiceSoap12Binding" type="axis2:UtilityServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="concat">
+            <soap12:operation soapAction="urn:concat" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UtilityServiceHttpBinding" type="axis2:UtilityServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="concat">
+            <http:operation location="UtilityService/concat"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="concat"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="concat"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="UtilityService">
+        <wsdl:port name="UtilityServiceHttpSoap11Endpoint" binding="axis2:UtilityServiceSoap11Binding">
+            <soap:address location="http://localhost:8080/axis2/services/UtilityService.UtilityServiceHttpSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="UtilityServiceHttpSoap12Endpoint" binding="axis2:UtilityServiceSoap12Binding">
+            <soap12:address location="http://localhost:8080/axis2/services/UtilityService.UtilityServiceHttpSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="UtilityServiceHttpEndpoint" binding="axis2:UtilityServiceHttpBinding">
+            <http:address location="http://localhost:8080/axis2/services/UtilityService.UtilityServiceHttpEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

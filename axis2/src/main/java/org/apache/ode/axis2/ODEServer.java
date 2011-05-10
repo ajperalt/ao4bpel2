@@ -80,8 +80,7 @@ import org.apache.ode.store.ProcessStoreImpl;
 import org.apache.ode.utils.GUID;
 import org.apache.ode.utils.fs.TempFileManager;
 
-
-import de.tud.stg.ao4ode.facts.BpelFactsManager;
+import de.tud.stg.ao4ode.aspectmanager.AspectManager;
 import de.tud.stg.ao4ode.runtime.DynamicFactsBpelEventListener;
 
 /**
@@ -245,6 +244,11 @@ public class ODEServer {
     	// Register BpelEventListenr to collect dynamic facts
     	DynamicFactsBpelEventListener dynFactsListener = new DynamicFactsBpelEventListener();
     	_bpelServer.registerBpelEventListener(dynFactsListener);
+    	
+    	// Initialize Aspect Manager
+    	AspectManager am = AspectManager.getInstance();
+    	am.setDepoloymentDir(_workRoot);
+    	
 	}
 
     @SuppressWarnings("unchecked")

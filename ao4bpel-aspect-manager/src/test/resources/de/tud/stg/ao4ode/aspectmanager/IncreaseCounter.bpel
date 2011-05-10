@@ -1,0 +1,136 @@
+<process name="increaseCounter" targetNamespace="http://stg.tu-darmstadt.de/ao4bpel"
+	xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+	xmlns:tns="http://stg.tu-darmstadt.de/ao4bpel" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:test="http://stg.tu-darmstadt.de/ao4bpel" queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath2.0"
+	expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath2.0"
+	xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+	xmlns:utility="http://stg.tu-darmstadt.de/utilityService"
+	xmlns:utility2="http://ws.ao4bpel.stg.tud.de"    
+    xmlns:counter="http://stg.tu-darmstadt.de/counterService">
+
+	<import location="IncreaseCounter.wsdl" namespace="http://stg.tu-darmstadt.de/ao4bpel"
+		importType="http://schemas.xmlsoap.org/wsdl/" />
+		
+	<import location="UtilityService.wsdl" namespace="http://stg.tu-darmstadt.de/utilityService"
+		importType="http://schemas.xmlsoap.org/wsdl/" />
+		
+	<import location="CounterService.wsdl" namespace="http://stg.tu-darmstadt.de/counterService"
+		importType="http://schemas.xmlsoap.org/wsdl/" />
+
+	<partnerLinks>
+		<partnerLink
+			name="Hello3PartnerLink"
+			partnerLinkType="test:Hello3PartnerLinkType"
+			myRole="me"
+			/>
+			
+		<partnerLink name="utilityServiceLink"
+			partnerLinkType="test:UtilityServiceLinkType"
+			partnerRole="utilityService"
+			initializePartnerRole="no" />
+						
+		<partnerLink name="counterServiceLink"
+			partnerLinkType="test:CounterServiceLinkType"
+			partnerRole="counterService"
+			initializePartnerRole="no" />
+			
+	</partnerLinks>
+
+	<variables>
+		<variable name="input" messageType="test:HelloMessage" />
+		<variable name="concatRequest" messageType="utility:concatRequest"/>
+		<variable name="concatResponse" messageType="utility:concatResponse" />
+		
+		<!--  TODO: move to aspect when compiler is finished -->
+		<variable name="incrementRequest" messageType="counter:incrementRequest"/>
+		<variable name="incrementResponse" messageType="counter:incrementResponse" />		
+		
+		<variable name="response" messageType="test:HelloResponseMessage" />
+	</variables>
+
+	<sequence>
+		<receive name="start" partnerLink="Hello3PartnerLink"
+			portType="test:Hello3PortType" operation="hello" variable="input"
+			createInstance="yes" />
+			
+		<assign name="assign0" validate="yes">
+				
+			<!--  initialize  -->
+			<copy>
+				<from>
+					<literal>
+						<utility2:concatRequest>
+							<utility2:string1 />
+							<utility2:string2 />
+						</utility2:concatRequest>
+					</literal>
+				</from>
+				<to><![CDATA[$concatRequest.parameters]]></to>
+			</copy>
+			
+			<copy>
+				<from>
+					<literal>
+						<counter:incrementRequest>
+							<counter:id><![CDATA[HelloWorld3]]></counter:id>
+						</counter:incrementRequest>
+					</literal>
+				</from>
+				<to><![CDATA[$incrementRequest.parameters]]></to>
+			</copy>
+			
+		</assign>
+
+
+
+        <bpel:assign validate="no" name="assign1">            
+            <bpel:copy>
+                <bpel:from part="string1" variable="input"></bpel:from>
+                <bpel:to part="parameters" variable="concatRequest">
+                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[utility2:string1]]></bpel:query>
+                </bpel:to>
+            </bpel:copy>
+            
+            <bpel:copy>
+                <bpel:from part="string2" variable="input"></bpel:from>
+                <bpel:to part="parameters" variable="concatRequest">
+                    <bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[utility2:string2]]></bpel:query>
+                </bpel:to>
+            </bpel:copy>
+            
+        </bpel:assign>
+        
+        <invoke
+			name="invokeCounterTest"
+			partnerLink="counterServiceLink"
+			operation="increment"
+			inputVariable="incrementRequest"
+			outputVariable="incrementResponse"
+			/>
+				
+		<!-- 
+        <invoke
+			name="invokeConcatAdvice"
+			partnerLink="utilityServiceLink"
+			operation="concat"
+			inputVariable="concatRequest"
+			outputVariable="concatResponse"
+			/>
+ 		
+ 
+		<assign name="assign2">
+            
+            <bpel:copy>
+                <bpel:from variable="concatResponse" part="parameters">
+                	<bpel:query queryLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0"><![CDATA[utility2:return]]></bpel:query>
+                </bpel:from>
+                <bpel:to variable="response" part="response" />
+            </bpel:copy>
+            
+        </assign>
+
+		<reply name="end" partnerLink="Hello3PartnerLink" portType="test:Hello3PortType"
+			operation="hello" variable="response" />
+		-->
+	</sequence>
+</process>

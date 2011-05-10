@@ -39,12 +39,14 @@ import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OExpression;
 import org.apache.ode.bpel.o.OInvoke;
 import org.apache.ode.bpel.o.OLink;
+import org.apache.ode.bpel.o.OProcess;
 import org.apache.ode.bpel.o.OScope;
 import org.apache.ode.bpel.o.OFailureHandling;
 import org.apache.ode.bpel.runtime.channels.FaultData;
 import org.apache.ode.bpel.runtime.channels.LinkStatusChannelListener;
 import org.apache.ode.bpel.runtime.channels.ParentScopeChannel;
 import org.apache.ode.bpel.runtime.channels.ParentScopeChannelListener;
+import org.apache.ode.bpel.runtime.channels.TerminationChannel;
 import org.apache.ode.bpel.runtime.channels.TerminationChannelListener;
 import org.apache.ode.bpel.runtime.channels.ActivityRecoveryChannel;
 import org.apache.ode.bpel.runtime.channels.ActivityRecoveryChannelListener;
@@ -63,6 +65,8 @@ import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
 
+import de.tud.stg.ao4ode.aspectmanager.AspectManager;
+import de.tud.stg.ao4ode.runtime.AO4ODEExecutionQueueImpl;
 import de.tud.stg.ao4ode.runtime.facts.ODEInvokeFact;
 
 import java.io.ByteArrayInputStream;
@@ -125,12 +129,22 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 		newChannel(ParentScopeChannel.class));
                 
                 // AO4ODE: TODO: Call aspect manager                
-                // Before advice. For testing, just execute invoke activity twice
+                // Before advice test
                 String pc = "process/sequence[1]/invoke[@name='invokeConcatAdvice']";
                 if(activity.getO().getXPath() != null &&                		
                 		activity.getO().getXPath().equals(pc)) {
                 	
-                	__log.info("Executing before advice for PC " + pc );                	
+                	__log.info("Executing before advice for PC " + pc );
+                	
+                	AspectManager am = AspectManager.getInstance();
+                	OActivity oAdviceActivity = am.getAdvice();
+                	
+                	ActivityInfo adviceActivity = new ActivityInfo(genMonotonic(),
+                			oAdviceActivity,
+                    		_self.self,
+                    		newChannel(ParentScopeChannel.class));
+                	
+                	instance(createActivity(adviceActivity));
                 	
                 }
                 

@@ -1,0 +1,35 @@
+<aspect name="CountFlightServiceInvocations" xmlns:cns="http://localhost:8080/axis/services/CounterService"
+                                             xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/">
+
+<partners>
+ <partner name="counter" serviceLinkType="cns:CounterSLT"/> 
+</partners>
+
+<variables>
+ <variable name="invocationrequest"  messageType="cns:increaseRequest"/>
+ <variable name="invocationresponse" messageType="cns:increaseResponse"/>
+</variables>
+
+<pointcut name="FlightServiceInvokes" contextCollection="true">//process//invoke[@operation="findAFlight"]</pointcut>
+
+<advice type="before">
+<bpws:sequence>   
+
+  <bpws:assign>
+    <bpws:copy>
+      <bpws:from expression="'1'"/>
+      <bpws:to variable="invocationrequest" part="increaseBy"/>
+    </bpws:copy>
+    <bpws:copy>
+      <bpws:from expression="'findAFlightCalls'"/>
+      <bpws:to variable="invocationrequest" part="identifier"/>
+    </bpws:copy>
+  </bpws:assign>   
+
+  <bpws:invoke name="invoke" partner="counter" portType="cns:CounterService"
+               operation="increase" inputVariable="invocationrequest"
+               outputVariable="invocationresponse"/>
+    
+</bpws:sequence>  
+</advice>
+</aspect>
