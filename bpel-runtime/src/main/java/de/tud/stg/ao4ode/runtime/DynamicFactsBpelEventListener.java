@@ -95,7 +95,7 @@ public class DynamicFactsBpelEventListener implements BpelEventListener {
 			}
 			
 			log.debug("Process Completion Event");
-			AO4ODEExecutionQueueImpl.RUN_ADVICE = true;
+			// AO4ODEExecutionQueueImpl.RUN_ADVICE = true;
 		}
 		
 		// Handle Variable read and write events

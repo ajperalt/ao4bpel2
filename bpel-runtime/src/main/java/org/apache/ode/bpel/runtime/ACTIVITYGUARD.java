@@ -28,6 +28,7 @@ import org.apache.ode.bpel.compiler.bom.Bpel11QNames;
 import org.apache.ode.bpel.compiler.bom.Bpel20QNames;
 import org.apache.ode.bpel.compiler.bom.BpelObjectFactory;
 import org.apache.ode.bpel.compiler.bom.DOMBuilderContentHandler;
+import org.apache.ode.bpel.engine.BpelRuntimeContextImpl;
 import org.apache.ode.bpel.evt.ActivityEnabledEvent;
 import org.apache.ode.bpel.evt.ActivityExecEndEvent;
 import org.apache.ode.bpel.evt.ActivityExecStartEvent;
@@ -54,6 +55,8 @@ import org.apache.ode.bpel.runtime.channels.TimerResponseChannel;
 import org.apache.ode.bpel.runtime.channels.TimerResponseChannelListener;
 import org.apache.ode.jacob.ChannelListener;
 import org.apache.ode.jacob.SynchChannel;
+import org.apache.ode.jacob.vpu.ExecutionQueueImpl;
+import org.apache.ode.jacob.vpu.JacobVPU;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.utils.XMLParserUtils;
 
@@ -123,7 +126,7 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 }
                 
                 // intercept completion channel in order to execute transition conditions.
-                ActivityInfo activity = new ActivityInfo(genMonotonic(),
+                final ActivityInfo activity = new ActivityInfo(genMonotonic(),
                 		_self.o,
                 		_self.self,
                 		newChannel(ParentScopeChannel.class));
@@ -136,20 +139,150 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 	
                 	__log.info("Executing before advice for PC " + pc );
                 	
+                	// POINTCUT MATCHING
+                	// GET ADVICE
                 	AspectManager am = AspectManager.getInstance();
-                	OActivity oAdviceActivity = am.getAdvice();
+                	final OProcess oAspect = am.getAdvice();
                 	
-                	ActivityInfo adviceActivity = new ActivityInfo(genMonotonic(),
-                			oAdviceActivity,
-                    		_self.self,
+                	/** ADVICE AS ACTIVITY ***/
+                	/*
+                	 *
+                	 * 16:15:14,299 ERROR [BpelEngineImpl] Scheduled job failed; jobDetail=JobDetails( instanceId: 251 mexId: hqejbhcnphr69kwrg8no8v processId: null type: INVOKE_RE
+SPONSE channel: 27 correlatorId: null correlationKeySet: null retryCount: null inMem: false detailsExt: {})
+java.lang.RuntimeException: java.lang.ClassCastException: cannot assign instance of org.apache.ode.bpel.o.OPartnerLink to field org.apache.ode.bpel.runtime.ActivityInfo.o of type org.apache.ode.bpel.o.OActivity in instance of org.apache.ode.bpel.runtime.ActivityInfo
+        at org.apache.ode.bpel.engine.BpelRuntimeContextImpl.<init>(BpelRuntimeContextImpl.java:182)
+        at org.apache.ode.bpel.engine.BpelProcess.createRuntimeContext(BpelProcess.java:796)
+        at org.apache.ode.bpel.engine.BpelProcess.handleJobDetails(BpelProcess.java:437)
+        at org.apache.ode.bpel.engine.BpelEngineImpl.onScheduledJob(BpelEngineImpl.java:469)
+
+                	 */
+                	/*
+                	// INJECT VARIABLES AND PARTNER LINKS                	
+                	BpelRuntimeContext ntive = getBpelRuntimeContext();
+                    Long aspectScopeInstanceId = ntive.createScopeInstance(null, oAspect.procesScope);                    
+                	ScopeFrame aspectScopeFrame = new ScopeFrame(oAspect.procesScope, aspectScopeInstanceId, null, null);
+                	LinkFrame aspectLinkFrame = new LinkFrame(null);
+                	
+                	getBpelRuntimeContext().initializePartnerLinks(aspectScopeInstanceId, 
+                			oAspect.procesScope.partnerLinks.values());
+                	
+                	// RUN ADVICE
+                	final ActivityInfo adviceActivity = new ActivityInfo(genMonotonic(),
+                			oAspect.procesScope.activity,
+                    		newChannel(TerminationChannel.class),
                     		newChannel(ParentScopeChannel.class));
                 	
-                	instance(createActivity(adviceActivity));
+                	instance(
+                			createActivity(adviceActivity,
+                					aspectScopeFrame,
+                					aspectLinkFrame)                			
+                	);
+                	*/
+                	/*** END OF ADVICE AS ACTIVITY ***/
+                	
+                	
+                	/*** ADVICE AS SCOPE ***/
+                	/*
+                	// Create new scope for aspect
+                	BpelRuntimeContext ntive = getBpelRuntimeContext();                    
+                	Long scopeInstanceId = ntive.createScopeInstance(null, oAspect.procesScope);
+                    
+                	// Create ActivityInfo and ScopeFrame for Aspect                	
+                    final ActivityInfo adviceActivity = new ActivityInfo(genMonotonic(),
+                            oAspect.procesScope,
+                            newChannel(TerminationChannel.class),
+                            newChannel(ParentScopeChannel.class));
+                    ScopeFrame processFrame = new ScopeFrame(oAspect.procesScope, scopeInstanceId, null, null);
+                    
+                    // RUN ADVICE
+                    instance(new SCOPE(adviceActivity, processFrame, new LinkFrame(null)));
+                    */
+                    
+                    /*** END OF ADVICE AS SCOPE ***/
+                    
+                	
+                	/*** ADVICE AS PROCESS ***/
+                    // RUN ADVICE                	
+                	BpelRuntimeContext nativeAPI = (BpelRuntimeContext)getExtension(BpelRuntimeContext.class);
+                	
+                	PROCESS adviceProcess = new PROCESS(oAspect);
+                	/*
+                	ExecutionQueueImpl _soup = new ExecutionQueueImpl(BpelRuntimeContextImpl.class.getClassLoader());
+                    JacobVPU _vpu = new JacobVPU(_soup);
+                    _vpu.registerExtension(BpelRuntimeContext.class, nativeAPI);
+                	_vpu.inject(adviceProcess);
+                	_vpu.execute();
+                	*/
+                	// JacobVPU.activeJacobThread().instance(adviceProcess);
+                	
+                	// Continue
+                	instance(adviceProcess);
+                	instance(createActivity(activity));
+                	instance(new TCONDINTERCEPT(activity.parent));
+
+                    /*** END OF ADVICE AS PROCESS ***/
+                	
+                	// HANDLE ADVICE FAULTS
+                	// DON'T LET THE ASPECT INTERFERE WITH THE PROCESS
+                	/*
+                	object(new ParentScopeChannelListener(adviceActivity.parent) {
+
+						private static final long serialVersionUID = 1L;
+
+						public void compensate(OScope scope, SynchChannel ret) {
+							__log.info("ADVICE COMPENSATE");
+                            assert false;
+                        }
+
+                        public void completed(FaultData fault, Set<CompensationHandler> compensations) {
+                            
+                        	 // BpelRuntimeContext nativeAPI = (BpelRuntimeContext)getExtension(BpelRuntimeContext.class);
+                             if (fault == null) {
+                            	 __log.error("ADVICE COMPLETED - OK");
+                            	 // adviceActivity.parent.completed(null, CompensationHandler.emptySet());
+                             } else {
+                            	 __log.error("ADVICE COMPLETED - FAULT");
+                            	 __log.error("ADVICE FAILED: " + fault.getExplanation());
+                            	 // adviceActivity.parent.completed(fault, CompensationHandler.emptySet());                            	 
+                             }
+                             
+                             
+                             
+                            instance(createActivity(activity));
+                         	instance(new TCONDINTERCEPT(activity.parent));
+                        }
+
+                        public void cancelled() {
+                        	__log.error("ADVICE CANCELED - OK");
+                        	
+                        	instance(createActivity(activity));
+                        	instance(new TCONDINTERCEPT(activity.parent));
+                        }
+
+                        public void failure(String reason, Element data) {
+                        	__log.error("ADVICE FAILURE");
+                        	__log.error("ADVICE FAILURE REASON: " + reason + "(" + data + ")");
+                        	
+                        	instance(createActivity(activity));
+                        	instance(new TCONDINTERCEPT(activity.parent));
+                            
+                        }
+                    });
+                	*/
+                	
+                	
+                	
                 	
                 }
+                else {
+                	// No Advice, continue
+                	instance(createActivity(activity));
+                	instance(new TCONDINTERCEPT(activity.parent));
+                }
                 
-                instance(createActivity(activity));
-                instance(new TCONDINTERCEPT(activity.parent));
+                // DEFAULT ACTION
+            	// instance(createActivity(activity));
+            	// instance(new TCONDINTERCEPT(activity.parent));
                 
             } else {
                 if (_oactivity.suppressJoinFailure) {

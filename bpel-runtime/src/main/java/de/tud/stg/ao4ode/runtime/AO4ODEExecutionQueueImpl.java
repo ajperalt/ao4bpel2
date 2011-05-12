@@ -32,6 +32,7 @@ public class AO4ODEExecutionQueueImpl extends ExecutionQueueImpl {
 		this.bpelRuntimeContextImpl = bpelRuntimeContextImpl;
 	}
 	
+	/*
 	public static boolean RUN_ADVICE = true;
 	@Override	
 	public Continuation dequeueReaction() {
@@ -68,7 +69,7 @@ public class AO4ODEExecutionQueueImpl extends ExecutionQueueImpl {
        			
        			JacobRunnable advice = (JacobRunnable)continuation.getClosure();
        			
-       			/* Nope... :( */
+       			// Nope... :(
        			bpelRuntimeContextImpl.getVPU().inject(advice);
        			       			
        			RUN_ADVICE = false;
@@ -79,5 +80,5 @@ public class AO4ODEExecutionQueueImpl extends ExecutionQueueImpl {
                 
         return continuation;
     }
-
+	 */
 }

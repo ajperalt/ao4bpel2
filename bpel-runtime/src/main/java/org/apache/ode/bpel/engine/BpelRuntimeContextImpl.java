@@ -763,7 +763,10 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
     public String invoke(int aid, PartnerLinkInstance partnerLink, Operation operation, Element outgoingMessage,
                          InvokeResponseChannel channel) throws FaultException {
 
+    	__log.info("AO4ODE: INVOKE PARTNER LINK INSTANCE: " + partnerLink);
         PartnerLinkDAO plinkDAO = fetchPartnerLinkDAO(partnerLink);
+        __log.info("AO4ODE: INVOKE PARTNER LINK DAO: " + plinkDAO);
+        
         // The target (partner endpoint) -- if it has not been explicitly
         // initialized
         // then use the value from bthe deployment descriptor ..

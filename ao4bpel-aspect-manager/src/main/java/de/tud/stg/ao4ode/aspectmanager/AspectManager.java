@@ -38,7 +38,7 @@ public class AspectManager {
 	}
 	
 	// TODO: Return OAdvice
-	public OActivity getAdvice() {
+	public OProcess getAdvice() {
 		
 		assert deployDir != null;
 		
@@ -71,7 +71,7 @@ public class AspectManager {
 			e.printStackTrace();
 		}
 		
-		return oprocess.procesScope;
+		return oprocess;
 		
 	}
 	

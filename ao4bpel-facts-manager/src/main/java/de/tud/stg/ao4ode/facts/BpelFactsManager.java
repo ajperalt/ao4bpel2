@@ -111,10 +111,12 @@ public class BpelFactsManager {
 	public void afterInvoke(Long pid, InvokeFact invoke) {
 		log.debug("Adding invoke_end fact: " + invoke.getXPath() + "(" + pid + ")");
 		
+		String response = invoke.getResponse();
+		
 		engine.addEndInvoke(pid+"",
 			invoke.getXPath(),				 
 			System.currentTimeMillis(),
-			invoke.getResponse(),
+			(response == null) ? "" : response,			
 			true);
 		
 	}
