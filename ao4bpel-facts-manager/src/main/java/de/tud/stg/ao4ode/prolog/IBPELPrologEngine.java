@@ -95,7 +95,7 @@ public interface IBPELPrologEngine {
 	 * @param pid
 	 * @throws MalformedQueryException
 	 */
-	public void solve(Query query, String pid) throws MalformedQueryException;
+	public boolean solve(Query query, String pid) throws MalformedQueryException;
 	
 	
 	/**

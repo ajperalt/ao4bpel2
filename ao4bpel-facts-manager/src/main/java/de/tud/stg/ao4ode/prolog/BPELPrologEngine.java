@@ -245,7 +245,7 @@ public class BPELPrologEngine implements IBPELPrologEngine {
 		addFact(end_invoke);
 	}
 	
-	public void solve(Query query, String pid) throws MalformedQueryException {
+	public boolean solve(Query query, String pid) throws MalformedQueryException {
 		
 		String q = query.getQuery();
 		
@@ -255,14 +255,19 @@ public class BPELPrologEngine implements IBPELPrologEngine {
 		}
 		
 		try {
-			SolveInfo si = engine.solve(q);
+			SolveInfo si = engine.solve(q);			
 			if(si.isSuccess()) { // pointcut matches 
-				// TODO: do something...
+				// TODO: do something
+				return true;
+			}
+			else {
+				return false;
 			}
 		} catch (MalformedGoalException e) {
 			//just throw our exception class
 			throw new MalformedQueryException(query);
 		}
+		
 	}
 	
 	/**

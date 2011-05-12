@@ -8,6 +8,8 @@ import org.apache.commons.logging.LogFactory;
 import de.tud.stg.ao4ode.prolog.BPELPrologEngine;
 import de.tud.stg.ao4ode.prolog.IBPELPrologEngine;
 import de.tud.stg.ao4ode.prolog.IStaticProcessFactGenerator;
+import de.tud.stg.ao4ode.prolog.MalformedQueryException;
+import de.tud.stg.ao4ode.prolog.Query;
 import de.tud.stg.ao4ode.prolog.StaticProcessFactGenerator;
 
 
@@ -144,6 +146,14 @@ public class BpelFactsManager {
 		return processes.get(processInstanceId);
 	}
 
+	public boolean solve(String name, String faultName, String query, String pid) {
+		try {
+		return engine.solve(new Query(name, faultName, query), pid);
+		} catch (MalformedQueryException e) {		
+			e.printStackTrace();
+			return false;
+		}
+	}
 	
 
 }

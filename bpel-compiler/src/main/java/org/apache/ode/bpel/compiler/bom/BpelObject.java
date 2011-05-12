@@ -223,7 +223,8 @@ public class BpelObject implements SourceLocation {
         return val;
     }
     
-    protected String getAttribute(String name, String dflt) {
+    // AO4ODE: testing only
+    public String getAttribute(String name, String dflt) {
         String val = _element.getAttribute(name);
         if (val == null || "".equals(val))
             return dflt;

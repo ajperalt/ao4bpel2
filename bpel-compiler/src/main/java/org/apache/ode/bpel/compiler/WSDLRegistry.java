@@ -54,7 +54,7 @@ import java.util.*;
 /**
  * A parsed collection of WSDL definitions, including BPEL-specific extensions.
  */
-class WSDLRegistry {
+public class WSDLRegistry {
     private static final Log __log = LogFactory.getLog(WSDLRegistry.class);
 
     private static final CommonCompilationMessages __cmsgs =
