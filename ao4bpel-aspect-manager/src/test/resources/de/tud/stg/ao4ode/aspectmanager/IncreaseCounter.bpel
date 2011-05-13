@@ -6,7 +6,9 @@
 	xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
 	xmlns:utility="http://stg.tu-darmstadt.de/utilityService"
 	xmlns:utility2="http://ws.ao4bpel.stg.tud.de"    
-    xmlns:counter="http://stg.tu-darmstadt.de/counterService">
+    xmlns:counter="http://stg.tu-darmstadt.de/counterService"
+    pointcut="event(ProcessID,_,_,_,_,'invokeConcatAdvice',_,'ActivityEnabledEvent',_),
+			  not(event(ProcessID,_,_,_,_,'invokeConcatAdvice',_,'ActivityExecStartEvent',_)).">
 
 	<import location="IncreaseCounter.wsdl" namespace="http://stg.tu-darmstadt.de/ao4bpel"
 		importType="http://schemas.xmlsoap.org/wsdl/" />

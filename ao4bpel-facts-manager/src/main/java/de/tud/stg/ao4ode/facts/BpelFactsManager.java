@@ -146,9 +146,9 @@ public class BpelFactsManager {
 		return processes.get(processInstanceId);
 	}
 
-	public boolean solve(String name, String faultName, String query, String pid) {
+	public boolean solve(String name, String faultName, String query, Long pid) {
 		try {
-		return engine.solve(new Query(name, faultName, query), pid);
+		return engine.solve(new Query(name, faultName, query), pid+"");
 		} catch (MalformedQueryException e) {		
 			e.printStackTrace();
 			return false;

@@ -124,11 +124,11 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 		_self.self,
                 		newChannel(ParentScopeChannel.class));
                 
-                // AO4ODE: GET ADVICE
+                // AO4ODE: Pointcut matching
             	AspectManager am = AspectManager.getInstance();
             	final OAdvice oAdvice = am.getAdvice(getBpelRuntimeContext().getPid(), _self.o);
             	
-            	// FIXME: unschön..
+            	// FIXME: No pointcut matching during advice execution?
                 if(!(_self.o.getOwner() instanceof OAdvice) && oAdvice != null) {
                 	
                     // RUN ADVICE

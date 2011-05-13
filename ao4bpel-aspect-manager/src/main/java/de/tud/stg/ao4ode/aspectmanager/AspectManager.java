@@ -40,67 +40,58 @@ public class AspectManager {
 		
 	}
 	
-	public static AspectManager getInstance() {				
-		return instance;
-	}
-	
 	private void loadAspects() {
+		
 		// TODO: Use AspectStore
+		
+		// Load aspect from file
 		File deployRoot = new File(deployDir, "aspects");
 		if (!deployRoot.isDirectory())
-            throw new IllegalArgumentException(deployRoot + " does not exist or is not a directory");
-		
-		File f;
-	    f=new File(deployRoot, "myfile.txt");
-	    if(!f.exists()){
-	    	try {
-				f.createNewFile();
-				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-	    }
-	    
-	    File aspectFile = new File(deployRoot, "IncreaseCounter.bpel");
-	    	    
+            throw new IllegalArgumentException(deployRoot + " does not exist or is not a directory");		
+	    File aspectFile = new File(deployRoot, "IncreaseCounter.bpel");	    	    
 	    log.debug("ASPECT FILE: " + aspectFile.getAbsolutePath());
 	    		
-		OAdvice oadvice = null;
-		
+		// Compile aspect
+	    OAspect oaspect = null;
 		try {
-			oadvice = compiler.compileAspect(aspectFile.toURL());
+			oaspect = compiler.compileAspect(aspectFile.toURL());
 		} catch (CompilationException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		OAspect oaspect = new OAspect();
-		Set<String> pointcuts = new HashSet<String>();
-		// pointcuts.add("process/sequence[1]/invoke[@name='invokeConcatAdvice']");
-		/*
-		pointcuts.add("event(_,\"process/sequence[1]/invoke[@name='invokeConcatAdvice']\",_,_,_,_,_,'ActivityEnabledEvent',_)," +
-				"not(event(_,\"process/sequence[1]/invoke[@name='invokeConcatAdvice']\",_,_,_,_,_,'ActivityExecStartEvent',_)).");		
-		*/
+				
+		// REMOVE: Add pointcuts for testing
+		// TODO: build aspect compiler
+		Set<String> pointcuts = new HashSet<String>();		
 		pointcuts.add(compiler.pointcut);
-
 		oaspect.setPointcuts(pointcuts);
-		oaspect.setoAdvice(oadvice);
-		
+				
 		aspects.add(oaspect);		
 	}
 	
 	
 	public OAdvice getAdvice(Long pid, OActivity oActivity) {
+		
+		// Load aspects
 		loadAspects();
+		
+		// Only handle activities with XPath
 		String xpath = oActivity.getXPath();		
 		if(xpath != null) {
 
+			// Return (composite) advice for current join point
 			for(OAspect aspect : aspects) {
 				// TODO: Build composite advice, for now, use the first match
 				for(String pointcut : aspect.getPointcuts()) {					
-					if(fm.solve(aspect.getOAdvice().getName(), "TODO", pointcut, pid+"")) {
+					if(fm.solve(aspect.getOAdvice().getName(),
+							"Invalid Pointcut",
+							pointcut, pid)) {
+						
+						log.debug("POINTCUT MATCH AT " + xpath + ": " + pointcut);
+						
 						return aspect.getOAdvice();
+						
 					}
 				}
 			}			
@@ -114,6 +105,11 @@ public class AspectManager {
 	public void setDepoloymentDir(File deployDir) {
 		this.deployDir = deployDir;
 		// loadAspects();
+	}
+	
+	// TODO: Avoid singleton pattern
+	public static AspectManager getInstance() {				
+		return instance;
 	}
 
 }

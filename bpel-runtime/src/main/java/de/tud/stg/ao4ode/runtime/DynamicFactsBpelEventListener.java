@@ -22,6 +22,12 @@ import de.tud.stg.ao4ode.runtime.facts.ODEInvokeFact;
 import de.tud.stg.ao4ode.runtime.facts.ODEReadVariableFact;
 import de.tud.stg.ao4ode.runtime.facts.ODEWriteVariableFact;
 
+/**
+ * BPEL Event Listener to collect dynamic process facts
+ *  
+ * @author A. Look
+ *
+ */
 public class DynamicFactsBpelEventListener implements BpelEventListener {
 	
 	private final Log log = LogFactory.getLog(DynamicFactsBpelEventListener.class);
@@ -34,8 +40,7 @@ public class DynamicFactsBpelEventListener implements BpelEventListener {
 	 */
 	public void onEvent(BpelEvent bpelEvent) {
 		
-		// TODO: Collect dynamic facts
-		log.debug("AO4ODE_DEBUG_PROLOG_EVENT: " + BpelEvent.eventName(bpelEvent));
+		log.debug("BPEL_EVENT: " + BpelEvent.eventName(bpelEvent));
 		
 		// Record all ActivityEvents
 		if(bpelEvent instanceof ActivityEvent) {

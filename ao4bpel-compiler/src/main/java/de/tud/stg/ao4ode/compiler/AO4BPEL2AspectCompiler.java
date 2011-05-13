@@ -48,7 +48,6 @@ import org.xml.sax.InputSource;
 
 public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 	
-	BpelC bpelC = BpelC.newBpelCompiler();
 	// FIXME: REMOVE: Testing only!
 	public String pointcut;
 	
@@ -56,10 +55,12 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 		super();
 	}
 
-	public OAdvice compileAspect(URL aspectURL) throws CompilationException, IOException {
+	public OAspect compileAspect(URL aspectURL) throws CompilationException, IOException {
 		
+		// Load aspect from file
 		File aspectFile = new File(aspectURL.getFile());
 		
+		// Parse aspect
 		Process process = null;
         try {
             InputSource isrc = new InputSource(new ByteArrayInputStream(StreamUtils.read(aspectFile.toURL())));
@@ -73,45 +74,33 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
         assert process != null;
                
         
-        // Compile
+        // TODO: Compile aspect
         ResourceFinder wf;
-
         File suDir = aspectFile.getParentFile(); 
-        wf = new DefaultResourceFinder(aspectFile.getAbsoluteFile().getParentFile(), suDir.getAbsoluteFile());
-        	        
-        // compiler = new AO4BPEL2AspectCompiler();
+        wf = new DefaultResourceFinder(
+        		aspectFile.getAbsoluteFile().getParentFile(),
+        		suDir.getAbsoluteFile());        	     
         this.setResourceFinder(wf);
-                
 
-        // Compile aspect like a normal process
-        // FIXME: Compile rootactivity in context of current process instead 
-        OAdvice oprocess;
+        // TODO: Compile advice 
+        OAdvice oadvice;
         try {
         	File _outputDir = new File(SystemUtils.userDirectory());
-            oprocess = this.compile(process,wf,BpelCompiler.getVersion(_outputDir.getAbsolutePath()));
+        	oadvice = this.compile(process,wf,BpelCompiler.getVersion(_outputDir.getAbsolutePath()));
         }
         catch (CompilationException cex) {
             throw cex;
         }
         
-        return oprocess;		
-
+        OAspect oaspect = new OAspect();
+        oaspect.setoAdvice(oadvice);
         
+        return oaspect;
         
-		/*
-		String wsdlURI = ("IncreaseCounter.wsdl");
-		try {
-			bpelC.setProcessWSDL(new URI(wsdlURI));
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		
-		bpelC.compile(aspectFile, version);
-		*/
 	}
 	
 	/**
-     * Compile a process.
+     * Compile advice (based on BPEL compiler)
      */
     public OAdvice compile(final Process process, ResourceFinder rf, long version) throws CompilationException {
         if (process == null)
