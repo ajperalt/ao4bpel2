@@ -25,5 +25,9 @@ public class OAspect {
 	public Set<String> getPointcuts() {
 		return pointcuts;
 	}
+
+	public void addPointcut(String pointcut) {
+		this.pointcuts.add(pointcut);
+	}
 	
 }

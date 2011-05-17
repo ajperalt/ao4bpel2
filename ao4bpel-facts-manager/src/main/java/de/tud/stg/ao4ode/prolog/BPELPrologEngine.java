@@ -288,6 +288,10 @@ public class BPELPrologEngine implements IBPELPrologEngine {
 	{
 		log.info(engine.getTheory());
 	}
+	
+	public String getTheory() {
+		return engine.getTheory().toString();
+	}
 
 	// @Override
 	public void addRule(String rule) {
@@ -304,7 +308,7 @@ public class BPELPrologEngine implements IBPELPrologEngine {
 	 */
 	public void removeFactsForProcess(Long pid) {
 		// engine.clearTheory();
-		try {
+		try {			
 			log.debug("Removing process facts for process: " + pid);
 			engine.solve("retractall(get_var('"+pid+"',_,_,_,_)).");
 			engine.solve("retractall(set_var('"+pid+"',_,_,_,_,_)).");
@@ -312,6 +316,7 @@ public class BPELPrologEngine implements IBPELPrologEngine {
 			engine.solve("retractall(end_invoke('"+pid+"',_,_,_,_)).");
 			engine.solve("retractall(create_process(_,'"+pid+"',_,_)).");
 			engine.solve("retractall(destroy_process('"+pid+"',_,_)).");
+			engine.solve("retractall(event('"+pid+"',_,_,_,_,_,_,_,_)).");
 		} catch (MalformedGoalException e) {
 			e.printStackTrace();
 		}

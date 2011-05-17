@@ -126,6 +126,8 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 
                 // AO4ODE: Pointcut matching
             	AspectManager am = AspectManager.getInstance();
+            	// TODO: move to aspect deployment
+            	am.loadAspects();
             	final OAdvice oAdvice = am.getAdvice(getBpelRuntimeContext().getPid(), _self.o);
             	
             	// FIXME: No pointcut matching during advice execution?

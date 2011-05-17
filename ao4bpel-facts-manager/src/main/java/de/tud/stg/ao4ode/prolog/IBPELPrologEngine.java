@@ -106,6 +106,9 @@ public interface IBPELPrologEngine {
 	
 	public void printFacts();
 	
+	public String getTheory();
+	
 	public void removeFactsForProcess(Long pid);
+	
 
 }

@@ -28,8 +28,11 @@ public class BpelFactsManager {
 	private HashMap<Long,BpelProcessFact> processes = new HashMap<Long,BpelProcessFact>();
 	
 	private BpelFactsManager() {
+		// TODO: Load rules from file
+		engine.addRule("activity(X):-event(ProcessID,_,_,_,_,X,_,'ActivityEnabledEvent',_),not(event(ProcessID,_,_,_,_,X,_,'ActivityExecStartEvent',_)).");
+		engine.addRule("xpath(X):-event(ProcessID,_,_,_,X,_,_,'ActivityEnabledEvent',_),not(event(ProcessID,_,_,_,X,_,_,'ActivityExecStartEvent',_)).");
 	}
-	
+		
 	public static BpelFactsManager getInstance() {				
 		return instance;
 	}
@@ -76,9 +79,12 @@ public class BpelFactsManager {
 		engine.addDestroyProcessInstance(pid+"",
 				System.currentTimeMillis(),
 				true);
-				
+		
 		// Debug output:
-		engine.printFacts();		
+		engine.printFacts();
+		
+		engine.removeFactsForProcess(pid);
+		
 	}
 	
 	public void dynamicEventFact(Long processInstanceId,
@@ -147,12 +153,24 @@ public class BpelFactsManager {
 	}
 
 	public boolean solve(String name, String faultName, String query, Long pid) {
+		
+		// REMOVE:
+		System.out.println("Solving " + name + ", " + faultName + ", " + pid + ": " + query);
+		
 		try {
 		return engine.solve(new Query(name, faultName, query), pid+"");
 		} catch (MalformedQueryException e) {		
 			e.printStackTrace();
 			return false;
 		}
+	}
+
+	public void addRule(String rule) {
+		engine.addRule(rule);
+	}
+	
+	public String getTheory() {
+		return engine.getTheory();
 	}
 	
 

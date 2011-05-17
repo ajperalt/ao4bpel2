@@ -125,6 +125,7 @@ public class DynamicFactsBpelEventListener implements BpelEventListener {
 							varEvent.getVarName(),
 							varEvent.getNewValue()));
 		}
+
 		
 	}
 

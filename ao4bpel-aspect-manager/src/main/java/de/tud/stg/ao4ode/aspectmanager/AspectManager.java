@@ -30,6 +30,7 @@ public class AspectManager {
 	private Set<OAspect> aspects = new HashSet<OAspect>();
 	
 	private AspectManager() {
+		
 		try {
 			compiler = new AO4BPEL2AspectCompiler();
 		} catch (Exception e) {
@@ -40,7 +41,13 @@ public class AspectManager {
 		
 	}
 	
-	private void loadAspects() {
+	public void addAspect(OAspect oaspect) {
+		aspects.add(oaspect);
+	}
+	
+	public void loadAspects() {
+		
+		aspects.clear();
 		
 		// TODO: Use AspectStore
 		
@@ -67,15 +74,12 @@ public class AspectManager {
 		pointcuts.add(compiler.pointcut);
 		oaspect.setPointcuts(pointcuts);
 				
-		aspects.add(oaspect);		
+		this.addAspect(oaspect);
 	}
 	
 	
 	public OAdvice getAdvice(Long pid, OActivity oActivity) {
-		
-		// Load aspects
-		loadAspects();
-		
+				
 		// Only handle activities with XPath
 		String xpath = oActivity.getXPath();		
 		if(xpath != null) {
