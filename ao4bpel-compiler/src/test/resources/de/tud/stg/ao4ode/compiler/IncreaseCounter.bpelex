@@ -62,6 +62,6 @@
   </extensions>
   <extensions>
     <extendedObject href="IncreaseCounter.bpel#/"/>
-    <extensionObject xsi:type="org.eclipse.bpel.ui.uiextensionmodel:ProcessExtension" modificationStamp="1305279079000"/>
+    <extensionObject xsi:type="org.eclipse.bpel.ui.uiextensionmodel:ProcessExtension" modificationStamp="1309892278000"/>
   </extensions>
 </extensionmodel:ExtensionMap>

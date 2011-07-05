@@ -53,8 +53,9 @@ public class BpelObject implements SourceLocation {
 
     private List<BpelObject> _children = null;
     
-    /** URI of the source document. */ 
-    private URI _docURI;
+    /** URI of the source document. */
+    // AO4ODE: changed visibility to protected
+    protected URI _docURI;
     
 
     public BpelObject(Element el) {

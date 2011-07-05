@@ -65,7 +65,8 @@ import org.w3c.dom.Node;
  * @author mriou
  * @author Maciej Szefler <mszefler at gmail dot com>
  */
-class DeploymentUnitDir {
+//AO4ODE: changed visibility to public
+public class DeploymentUnitDir {
 
 
     private static Log __log = LogFactory.getLog(DeploymentUnitDir.class);
@@ -108,7 +109,8 @@ class DeploymentUnitDir {
         }
     };
 
-    DeploymentUnitDir(File dir) {
+    // AO4ODE: changed visibility to public
+    public DeploymentUnitDir(File dir) {
         if (!dir.exists())
             throw new IllegalArgumentException("Directory " + dir + " does not exist!");
 
@@ -132,7 +134,8 @@ class DeploymentUnitDir {
     }
 
 
-    String getName() {
+    // AO4ODE: changed visibility to public
+    public String getName() {
         return _duDirectory.getName();
     }
 
@@ -150,7 +153,8 @@ class DeploymentUnitDir {
      * Checking for each BPEL file if we have a corresponding compiled process. If we don't,
      * starts compilation.
      */
-    void compile() {
+    // AO4ODE: Changed visibility to public
+    public void compile() {
         List<File> bpels = FileUtils.directoryEntriesInPath(_duDirectory, DeploymentUnitDir._bpelFilter);
         if (bpels.size() == 0)
             throw new IllegalArgumentException("Directory " + _duDirectory.getName() + " does not contain any process!");
@@ -166,7 +170,8 @@ class DeploymentUnitDir {
         }
     }
 
-    void scan() {
+    // AO4ODE: changed visibility to protected
+    protected void scan() {
         HashMap<QName, CBPInfo> processes = new HashMap<QName, CBPInfo>();
         List<File> cbps = FileUtils.directoryEntriesInPath(_duDirectory, DeploymentUnitDir._cbpFilter);
         for (File file : cbps) {
@@ -381,7 +386,8 @@ class DeploymentUnitDir {
      * @param bpelFile BPEL process file name
      * @return file name of the WSDL, or null if none specified.
      */
-    private File findBpel11Wsdl(File bpelFile) {
+    // AO4ODE: changed visibility to public
+    public File findBpel11Wsdl(File bpelFile) {
         List<Process> plist = getDeploymentDescriptor().getDeploy().getProcessList();
         for (Process process : plist) {
             if (process.getFileName() == null || "".equals(process.getFileName()))

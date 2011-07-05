@@ -38,6 +38,7 @@ import org.apache.ode.bpel.evt.InvokeExecStartEvent;
 import org.apache.ode.bpel.explang.EvaluationException;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
+import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.bpel.o.OExpression;
 import org.apache.ode.bpel.o.OInvoke;
 import org.apache.ode.bpel.o.OLink;
@@ -126,8 +127,7 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 
                 // AO4ODE: Pointcut matching
             	AspectManager am = AspectManager.getInstance();
-            	// TODO: move to aspect deployment
-            	am.loadAspects();
+
             	final OAdvice oAdvice = am.getAdvice(getBpelRuntimeContext().getPid(), _self.o);
             	
             	// FIXME: No pointcut matching during advice execution?

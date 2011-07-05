@@ -1,33 +1,49 @@
 package org.apache.ode.bpel.o;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class OAspect {
+public class OAspect implements Serializable {
 	
-	private static final long serialVersionUID = -8267184529496027966L;
+	private static final long serialVersionUID = 5258360738412039062L;
+
+    public String targetNamespace;
+    
+    public String aspectName;
+    
+	private String scope = null;
 	
-	private OAdvice oAdvice = null;
-	private Set<String> pointcuts = new HashSet<String>();
+	private Set<OPointcut> pointcuts = new HashSet<OPointcut>();
 	
-	public void setoAdvice(OAdvice oAdvice) {
-		this.oAdvice = oAdvice;
+	private OAdvice advice;
+		
+	public void addPointcut(OPointcut pointcut) {
+		this.pointcuts.add(pointcut);
 	}
-
-	public OAdvice getOAdvice() {
-		return oAdvice;
-	}
-
-	public void setPointcuts(Set<String> pointcuts) {
-		this.pointcuts = pointcuts;
-	}
-
-	public Set<String> getPointcuts() {
+	
+	public Set<OPointcut> getPointcuts() {
 		return pointcuts;
 	}
 
-	public void addPointcut(String pointcut) {
-		this.pointcuts.add(pointcut);
+	public void setScope(String scope) {
+		this.scope = scope;
+	}
+
+	public String getScope() {
+		return scope;
+	}
+	
+	public OAdvice getOAdvice() {
+		return advice;
+	}
+
+	public void setAdvice(OAdvice advice) {
+		this.advice = advice;
+	}
+
+	public String toString() {
+		return "[" + aspectName + ", " + scope + ", " +  pointcuts + "]";
 	}
 	
 }

@@ -1,4 +1,4 @@
-package de.tud.stg.ao4ode.aspectmanager;
+package de.tud.stg.ao4ode.compiler;
 
 import java.net.URL;
 import java.util.HashSet;
@@ -8,14 +8,12 @@ import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.bpel.o.OInvoke;
+import org.apache.ode.bpel.o.OPointcut;
 import org.apache.ode.bpel.o.OProcess;
 
 import de.tud.stg.ao4ode.compiler.AO4BPEL2AspectCompiler;
-import de.tud.stg.ao4ode.facts.BpelFactsManager;
-import de.tud.stg.ao4ode.facts.DynamicFact;
 
 public class AspectCompilerTest extends TestCase  {
 	
@@ -24,17 +22,13 @@ public class AspectCompilerTest extends TestCase  {
 	public void testCompileAspect() {
 		try {
 						
-			URL aspectURL = getClass().getResource("IncreaseCounter.bpel");
+			URL aspectURL = getClass().getResource("IncreaseCounter.aspect");
 			AO4BPEL2AspectCompiler compiler = new AO4BPEL2AspectCompiler();
-			OAspect oaspect = compiler.compileAspect(aspectURL);
-			
-			// TODO: REMOVE
-			Set<String> pointcuts = new HashSet<String>();
-			pointcuts.add(compiler.pointcut);			
-			oaspect.setPointcuts(pointcuts);
-            
-			System.out.println("Aspect name: " + oaspect.getOAdvice().getName());			
+			OAspect oaspect = compiler.compileAspect(aspectURL, "true.");
+		    
+			System.out.println("Aspect name: " + oaspect.aspectName);			
 			System.out.println("Aspect pointcuts: " + oaspect.getPointcuts());
+			System.out.println("Aspect Advice: " + oaspect.getOAdvice());
 			assertTrue(true);	
 			
 		} catch (Exception e) {
@@ -43,11 +37,14 @@ public class AspectCompilerTest extends TestCase  {
 		
 	}
 	
+	/* TODO: Remove
 	public void testAspectManager() {
 		try {
+			
 			AspectManager am = AspectManager.getInstance();
 			BpelFactsManager fm = BpelFactsManager.getInstance();
-					
+			
+			
 			String pc = "activity('invokeTest').";
 			
 			// Create Aspect
@@ -104,5 +101,6 @@ public class AspectCompilerTest extends TestCase  {
 			e.printStackTrace();
 		}
 	}
+	*/
 	
 }

@@ -74,6 +74,9 @@ public class OdeConfigProperties {
 
     public static final String PROP_DEPLOY_DIR = "deploy.dir";
     
+    // AO4ODE: Aspect Deploy Dir
+    public static final String PROP_ASPECT_DEPLOY_DIR = "deployaspects.dir";
+    
     public static final String PROP_EVENT_LISTENERS = "event.listeners";
 
     public static final String PROP_MEX_INTERCEPTORS = "mex.interceptors";
@@ -260,6 +263,11 @@ public class OdeConfigProperties {
 
     public String getDeployDir() {
         return getProperty(OdeConfigProperties.PROP_DEPLOY_DIR);
+    }
+    
+    // AO4ODE: Get Aspect Deploy Dir
+    public String getAspectDeployDir() {
+        return getProperty(OdeConfigProperties.PROP_ASPECT_DEPLOY_DIR);
     }
     
     public String getTxFactoryClass() {

@@ -43,6 +43,7 @@ if (!isMultipart) {
     ServletFileUpload upload = new ServletFileUpload(factory);
     List items = null;
     String packageName = null;
+    String scopeDefinition = null;
     try {
         items = upload.parseRequest(request);
     } catch (FileUploadException e) {
@@ -54,6 +55,9 @@ if (!isMultipart) {
         if (item.isFormField()) {
             if(item.getFieldName().equals("fileName")){
                 packageName = item.getString();
+            }
+            if(item.getFieldName().equals("scope")){
+                scopeDefinition = item.getString();
             }
         } else {
             try {
@@ -76,7 +80,7 @@ if (!isMultipart) {
                             byte[] encodedBytes  = Base64.encodeBase64(bytes);
                             String encodedString = new String(encodedBytes);
                             Options opts = new Options();
-                            opts.setAction("http://www.apache.org/ode/deployapi/DeploymentPortType/deployRequest");
+                            opts.setAction("http://www.apache.org/ode/deployapi/DeploymentPortType/deployAspectRequest");
                             opts.setSoapVersionURI(SOAP12Constants.SOAP_ENVELOPE_NAMESPACE_URI);
                             opts.setProperty(Constants.Configuration.HTTP_METHOD,
                                 Constants.Configuration.HTTP_METHOD_POST);
@@ -86,11 +90,12 @@ if (!isMultipart) {
                             OMElement payload = null;
                             OMFactory omFactory = OMAbstractFactory.getOMFactory();
                             OMNamespace ns = omFactory.createOMNamespace("http://www.apache.org/ode/pmapi","p");
-                            payload = omFactory.createOMElement("deploy", ns);
+                            payload = omFactory.createOMElement("deployAspect", ns);
                             OMElement name = omFactory.createOMElement("name", ns);
+                            OMElement scope = omFactory.createOMElement("scope", ns);
                             OMElement packageCont = omFactory.createOMElement("package", ns);
                             OMElement zipEle = omFactory.createOMElement("zip", ns);
-                            if(packageName != null && encodedString != null){
+                            if(packageName != null && encodedString != null) {
                                 OMText nameText = omFactory.createOMText(name, packageName);
                                 OMText packageText = omFactory.createOMText(zipEle, encodedString);
                                 packageCont.addChild(zipEle);
@@ -133,4 +138,3 @@ if (!isMultipart) {
     }
 }
 %>
-

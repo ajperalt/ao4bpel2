@@ -81,6 +81,9 @@ import org.apache.ode.utils.GUID;
 import org.apache.ode.utils.fs.TempFileManager;
 
 import de.tud.stg.ao4ode.aspectmanager.AspectManager;
+import de.tud.stg.ao4ode.aspectmanager.AspectStore;
+import de.tud.stg.ao4ode.aspectmanager.AspectStoreImpl;
+import de.tud.stg.ao4ode.aspectmanager.AspectStoreListenerImpl;
 import de.tud.stg.ao4ode.runtime.DynamicFactsBpelEventListener;
 
 /**
@@ -104,6 +107,9 @@ public class ODEServer {
     protected BpelServerImpl _bpelServer;
 
     protected ProcessStoreImpl _store;
+    
+    // AO4ODE
+    protected AspectStoreImpl _aspectstore;
 
     protected ODEConfigProperties _odeConfig;
 
@@ -179,11 +185,14 @@ public class ODEServer {
         initDAO();
         EndpointReferenceContextImpl eprContext = new EndpointReferenceContextImpl(this);            
         __log.debug("Initializing BPEL process store.");
-        initProcessStore(eprContext);
+        initProcessStore(eprContext);        
         __log.debug("Initializing BPEL server.");
         initBpelServer(eprContext);
         __log.debug("Initializing HTTP connection manager");
         initHttpConnectionManager();
+        
+        // AO4ODE: Init Aspect store
+        initAspectStore(eprContext);
 
         // Register BPEL event listeners configured in axis2.properties file.
         registerEventListeners();
@@ -192,7 +201,7 @@ public class ODEServer {
 
         // AO4ODE: Initialize AO4ODE
         __log.debug("AO4ODE: Initializing...");
-        initAO4ODE();
+        initAO4ODE(_aspectstore);
         
         _store.loadAll();
         
@@ -214,7 +223,8 @@ public class ODEServer {
         
         try {
             __log.debug("Initializing Deployment Web Service");
-            new DeploymentWebService().enableService(_axisConfig, _store, _poller, _appRoot.getAbsolutePath(), _workRoot.getAbsolutePath());
+            // AO4ODE: added aspect store
+            new DeploymentWebService().enableService(_axisConfig, _store, _aspectstore, _poller, _appRoot.getAbsolutePath(), _workRoot.getAbsolutePath());
         } catch (Exception e) {
             throw new ServletException(e);
         }
@@ -231,7 +241,7 @@ public class ODEServer {
     }
     
     // AO4ODE: register history listeners
-    private void initAO4ODE() {
+    private void initAO4ODE(AspectStore aspectstore) {
     	// TODO: REMOVE
     	/*
     	BpelHistory history = BpelHistory.getInstance();
@@ -245,9 +255,12 @@ public class ODEServer {
     	DynamicFactsBpelEventListener dynFactsListener = new DynamicFactsBpelEventListener();
     	_bpelServer.registerBpelEventListener(dynFactsListener);
     	
+    	
+    	
     	// Initialize Aspect Manager
     	AspectManager am = AspectManager.getInstance();
     	am.setDepoloymentDir(_workRoot);
+    	am.setAspectStore(aspectstore);
     	
 	}
 
@@ -484,9 +497,27 @@ public class ODEServer {
 	        		new File(_workRoot, "processes"));
         _store.setConfigDir(_configRoot);
     }
+    
+    // AO4ODE: Inititialize Aspect Store
+    protected void initAspectStore(EndpointReferenceContext eprContext) {
+        _aspectstore = createAspectStore(eprContext, _db.getDataSource());
+        _aspectstore.registerListener(new AspectStoreListenerImpl());
+        /*
+        _aspectstore.setDeployDir(
+        		_odeConfig.getDeployDir() != null ?
+	        		new File(_odeConfig.getAspectDeployDir()) :
+	        		new File(_workRoot, "aspects"));
+        _aspectstore.setConfigDir(_configRoot);
+        */
+    }
 
     protected ProcessStoreImpl createProcessStore(EndpointReferenceContext eprContext, DataSource ds) {
         return new ProcessStoreImpl(eprContext, ds, _odeConfig.getDAOConnectionFactory(), _odeConfig, false);
+    }
+    
+    // AO4ODE: Create Aspect Store
+    protected AspectStoreImpl createAspectStore(EndpointReferenceContext eprContext, DataSource ds) {
+        return new AspectStoreImpl(eprContext, _odeConfig);
     }
 
     protected Scheduler createScheduler() {

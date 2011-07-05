@@ -54,6 +54,31 @@
                     maxOccurs="unbounded" />
             </xsd:sequence>
         </xsd:complexType>
+        
+        <!--  AO4ODE: -->
+        <xsd:complexType name="aspectPackage">
+            <xsd:all>
+                <xsd:element name="zip" type="xmime:base64Binary"
+                    xmime:expectedContentType="application/zip" />
+            </xsd:all>
+        </xsd:complexType>
+        <xsd:complexType name="aspectPackageNames">
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="aspectIds">
+            <xsd:sequence>
+                <xsd:element name="id" type="xsd:QName" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="aspectDeployUnit">
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string" />
+                <xsd:element name="id" type="xsd:QName"
+                    maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>        
     </xsd:schema>
     </types>
 
@@ -86,6 +111,38 @@
     <message name="getProcessPackageOutput">
         <part name="packageName" type="xsd:string"/>
     </message>
+    
+    <!-- AO4ODE -->
+    <message name="deployAspectInput">
+        <part name="name" type="xsd:string"/>
+        <part name="scope" type="xsd:string"/>
+        <part name="package" type="tns:aspectPackage"/>
+    </message>
+    <message name="deployAspectOutput">
+        <part name="response" type="tns:deployUnit"/>
+    </message>
+    <message name="undeployAspectInput">
+        <part name="packageName" type="xsd:QName"/>
+    </message>
+    <message name="undeployAspectOutput">
+        <part name="response" type="xsd:boolean"/>
+    </message>
+    <message name="listDeployedAspectPackagesInput"/>
+    <message name="listDeployedAspectPackagesOutput">
+        <part name="deployedAspectPackages" type="tns:aspectPackageNames"/>
+    </message>
+    <message name="listAspectsInput">
+        <part name="aspectName" type="xsd:string"/>
+    </message>
+    <message name="listAspectsOutput">
+        <part name="aspectIds" type="tns:aspectIds"/>
+    </message>
+    <message name="getAspectPackageInput">
+        <part name="aspectName" type="xsd:QName"/>
+    </message>
+    <message name="getAspectPackageOutput">
+        <part name="aspectPackageName" type="xsd:string"/>
+    </message>
 
     <portType name="DeploymentPortType">
         <operation name="deploy">
@@ -107,6 +164,28 @@
         <operation name="getProcessPackage">
             <input message="tns:getProcessPackageInput"/>
             <output message="tns:getProcessPackageOutput"/>
+        </operation>
+        
+        <!-- AO4ODE -->
+        <operation name="deployAspect">
+            <input message="tns:deployAspectInput"/>
+            <output message="tns:deployAspectOutput"/>
+        </operation>
+        <operation name="undeployAspect">
+            <input message="tns:undeployAspectInput"/>
+            <output message="tns:undeployAspectOutput"/>
+        </operation>
+        <operation name="listDeployedAspectPackages">
+            <input message="tns:listDeployedAspectPackagesInput"/>
+            <output message="tns:listDeployedAspectPackagesOutput"/>
+        </operation>
+        <operation name="listAspects">
+            <input message="tns:listAspectsInput"/>
+            <output message="tns:listAspectsOutput"/>
+        </operation>
+        <operation name="getAspectPackage">
+            <input message="tns:getAspectPackageInput"/>
+            <output message="tns:getAspectPackageOutput"/>
         </operation>
     </portType>
 
@@ -157,11 +236,59 @@
                 <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
             </output>
         </operation>
+        
+        <!--  AO4ODE: -->
+        <operation name="deployAspect">
+            <soap:operation soapAction="" style="rpc"/>
+            <input>
+                <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
+            </input>
+            <output>
+                <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
+            </output>
+        </operation>
+        <operation name="undeployAspect">
+            <soap:operation soapAction="" style="rpc"/>
+            <input>
+                <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
+            </input>
+            <output>
+                <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
+            </output>
+        </operation>
+        <operation name="listDeployedAspectPackages">
+            <soap:operation soapAction="" style="rpc"/>
+            <input>
+                <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
+            </input>
+            <output>
+                <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
+            </output>
+        </operation>
+        <operation name="listAspects">
+            <soap:operation soapAction="" style="rpc"/>
+            <input>
+                <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
+            </input>
+            <output>
+                <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
+            </output>
+        </operation>
+        <operation name="getAspectPackage">
+            <soap:operation soapAction="" style="rpc"/>
+            <input>
+                <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
+            </input>
+            <output>
+                <soap:body namespace="http://www.apache.org/ode/pmapi" use="literal"/>
+            </output>
+        </operation>
+        
     </binding>
 
     <service name="DeploymentService">
         <port name="DeploymentPort" binding="tns:DeploymentBinding">
-            <soap:address location="http://localhost:8080/ode/processes/DeploymentService"/>
+            <soap:address location="http://localhost:8080/ao4ode/processes/DeploymentService"/>
         </port>
     </service>
 

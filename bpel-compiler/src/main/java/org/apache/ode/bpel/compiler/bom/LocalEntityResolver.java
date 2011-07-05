@@ -32,7 +32,8 @@ import java.util.HashMap;
 /**
  * Resolver implementation that restricts us to a known set of resources.
  */
-class LocalEntityResolver implements EntityResolver {
+// AO4ODE: changed visibility to public
+public class LocalEntityResolver implements EntityResolver {
   private static final Log __log = LogFactory.getLog(LocalEntityResolver.class);
 
   private final HashMap<String, URL> _mappings = new HashMap<String,URL>();
@@ -60,8 +61,8 @@ class LocalEntityResolver implements EntityResolver {
     return new InputSource(target.openStream());
   }
 
-  
-  void register(String id, URL location) {
+  // AO4ODE: changed visibility to public
+  public void register(String id, URL location) {
     if (id == null)
       throw new NullPointerException("id arg must not be null!");
     if (location == null)

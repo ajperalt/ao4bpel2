@@ -1,50 +1,31 @@
 package de.tud.stg.ao4ode.aspectmanager;
 import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ode.bpel.compiler.api.CompilationException;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
-import org.apache.ode.bpel.o.OAspect;
+import org.apache.ode.bpel.o.OPointcut;
 
-import de.tud.stg.ao4ode.compiler.AO4BPEL2AspectCompiler;
 import de.tud.stg.ao4ode.facts.BpelFactsManager;
 
 public class AspectManager {
 	private static final Log log = LogFactory.getLog(AspectManager.class);
 	private static AspectManager instance = new AspectManager();
-	
-	// TODO: REMOVE: compile aspect at deployment time and use some kind of
-	// aspect store instead
-	AO4BPEL2AspectCompiler compiler = null;
-	
+		
 	// TODO: REMOVE: move to AspectStore
 	private File deployDir = null;
 		
 	private BpelFactsManager fm = null;
-	private Set<OAspect> aspects = new HashSet<OAspect>();
 	
-	private AspectManager() {
-		
-		try {
-			compiler = new AO4BPEL2AspectCompiler();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	private AspectStore aspectStore;
+	
+	private AspectManager() {	
 		fm = BpelFactsManager.getInstance();
-		aspects = new HashSet<OAspect>();
-		
 	}
 	
-	public void addAspect(OAspect oaspect) {
-		aspects.add(oaspect);
-	}
-	
+	/* TODO: Remove
 	public void loadAspects() {
 		
 		aspects.clear();
@@ -55,7 +36,7 @@ public class AspectManager {
 		File deployRoot = new File(deployDir, "aspects");
 		if (!deployRoot.isDirectory())
             throw new IllegalArgumentException(deployRoot + " does not exist or is not a directory");		
-	    File aspectFile = new File(deployRoot, "IncreaseCounter.bpel");	    	    
+	    File aspectFile = new File(deployRoot, "IncreaseCounter.aspect");	    	    
 	    log.debug("ASPECT FILE: " + aspectFile.getAbsolutePath());
 	    		
 		// Compile aspect
@@ -76,7 +57,7 @@ public class AspectManager {
 				
 		this.addAspect(oaspect);
 	}
-	
+	*/
 	
 	public OAdvice getAdvice(Long pid, OActivity oActivity) {
 				
@@ -85,16 +66,21 @@ public class AspectManager {
 		if(xpath != null) {
 
 			// Return (composite) advice for current join point
-			for(OAspect aspect : aspects) {
+			Collection<AspectInfo> aspects = aspectStore.getAspects();
+			
+			log.debug("AspectStore before PC check: ");
+			log.debug(aspects);
+			
+			for(AspectInfo aspect : aspects) {
 				// TODO: Build composite advice, for now, use the first match
-				for(String pointcut : aspect.getPointcuts()) {					
-					if(fm.solve(aspect.getOAdvice().getName(),
+				for(OPointcut pointcut : aspect.getOAspect().getPointcuts()) {					
+					if(fm.solve(pointcut.getName(),
 							"Invalid Pointcut",
-							pointcut, pid)) {
+							pointcut.getQuery(), pid)) {
 						
 						log.debug("POINTCUT MATCH AT " + xpath + ": " + pointcut);
 						
-						return aspect.getOAdvice();
+						return aspect.getOAspect().getOAdvice();
 						
 					}
 				}
@@ -105,10 +91,18 @@ public class AspectManager {
 		return null;
 		
 	}
-
+	
+	// TODO: Remove?
 	public void setDepoloymentDir(File deployDir) {
 		this.deployDir = deployDir;
-		// loadAspects();
+	}
+	
+	public File getDeploymentDir() {
+		return deployDir;
+	}
+	
+	public void setAspectStore(AspectStore as) {
+		this.aspectStore = as;
 	}
 	
 	// TODO: Avoid singleton pattern

@@ -39,14 +39,16 @@ import java.util.Map;
 public class BpelObjectFactory {
 
     private static final Log __log = LogFactory.getLog(BpelObjectFactory.class);
+    
     private static BpelObjectFactory __instance = new BpelObjectFactory();
     
     public static final String WSDL = "http://schemas.xmlsoap.org/wsdl/";
     public static final String XML = "http://www.w3.org/2001/xml.xsd";
     
-    private final Map<QName, Class<? extends BpelObject>> _mappings = new HashMap<QName, Class<? extends BpelObject>>();
+    // AO4ODE: changed visibility to protected
+    protected final Map<QName, Class<? extends BpelObject>> _mappings = new HashMap<QName, Class<? extends BpelObject>>();
 
-    private Class[] __CTOR = { Element.class };
+    protected Class[] __CTOR = { Element.class };
 
     public BpelObjectFactory() {
         
@@ -264,6 +266,7 @@ public class BpelObjectFactory {
 
     public BpelObject createBpelObject(Element el, URI uri) {
         QName type = new QName(el.getNamespaceURI(), el.getLocalName());
+                
         Class cls = _mappings.get(type);
         if (cls == null) {
             __log.warn("Unrecognized element in BPEL dom: " + type);
@@ -278,7 +281,7 @@ public class BpelObjectFactory {
             throw new RuntimeException("Internal compiler error", ex); 
         }
     }
-
+    
     /**
      * Parse a BPEL process found at the input source.
      * @param isrc input source.
@@ -291,7 +294,7 @@ public class BpelObjectFactory {
         resolver.register(Bpel11QNames.NS_BPEL4WS_2003_03, getClass().getResource("/bpel4ws_1_1-fivesight.xsd"));
         resolver.register(Bpel20QNames.NS_WSBPEL2_0, getClass().getResource("/wsbpel_main-draft-Apr-29-2006.xsd"));
         resolver.register(Bpel20QNames.NS_WSBPEL2_0_FINAL_ABSTRACT, getClass().getResource("/ws-bpel_abstract_common_base.xsd"));
-        resolver.register(Bpel20QNames.NS_WSBPEL2_0_FINAL_EXEC, getClass().getResource("/ws-bpel_executable.xsd"));
+        resolver.register(Bpel20QNames.NS_WSBPEL2_0_FINAL_EXEC, getClass().getResource("/ws-bpel_executable.xsd"));  
         resolver.register(Bpel20QNames.NS_WSBPEL2_0_FINAL_PLINK, getClass().getResource("/ws-bpel_plnktype.xsd"));
         resolver.register(Bpel20QNames.NS_WSBPEL2_0_FINAL_SERVREF, getClass().getResource("/ws-bpel_serviceref.xsd"));
         resolver.register(Bpel20QNames.NS_WSBPEL2_0_FINAL_VARPROP, getClass().getResource("/ws-bpel_varprop.xsd"));

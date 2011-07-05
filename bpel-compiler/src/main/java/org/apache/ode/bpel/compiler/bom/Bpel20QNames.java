@@ -30,11 +30,11 @@ public abstract class Bpel20QNames {
 
     /** BPEL 2.0 Final namespaces */
     public static final String NS_WSBPEL2_0_FINAL_ABSTRACT = "http://docs.oasis-open.org/wsbpel/2.0/process/abstract";
-    public static final String NS_WSBPEL2_0_FINAL_EXEC = "http://docs.oasis-open.org/wsbpel/2.0/process/executable";
+    public static final String NS_WSBPEL2_0_FINAL_EXEC = "http://docs.oasis-open.org/wsbpel/2.0/process/executable";    
     public static final String NS_WSBPEL2_0_FINAL_PLINK = "http://docs.oasis-open.org/wsbpel/2.0/plnktype";
     public static final String NS_WSBPEL2_0_FINAL_SERVREF = "http://docs.oasis-open.org/wsbpel/2.0/serviceref";
     public static final String NS_WSBPEL2_0_FINAL_VARPROP = "http://docs.oasis-open.org/wsbpel/2.0/varprop";
-
+    
     /** Some BPEL 2.0 Final Elements **/
     public static final QName FINAL_PROCESS = newFinalQName("process");
     public static final QName FINAL_IMPORT = newFinalQName("import");

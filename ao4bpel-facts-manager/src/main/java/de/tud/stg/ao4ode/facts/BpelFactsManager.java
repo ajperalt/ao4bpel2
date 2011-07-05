@@ -154,8 +154,7 @@ public class BpelFactsManager {
 
 	public boolean solve(String name, String faultName, String query, Long pid) {
 		
-		// REMOVE:
-		System.out.println("Solving " + name + ", " + faultName + ", " + pid + ": " + query);
+		log.debug("Solving " + name + ", " + faultName + ", " + pid + ": " + query);
 		
 		try {
 		return engine.solve(new Query(name, faultName, query), pid+"");

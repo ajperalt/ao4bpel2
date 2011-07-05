@@ -3,31 +3,22 @@ package de.tud.stg.ao4ode.compiler;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.ode.bpel.compiler.BpelC;
-import org.apache.ode.bpel.compiler.BpelCompiler;
 import org.apache.ode.bpel.compiler.BpelCompiler20;
-import org.apache.ode.bpel.compiler.CommonCompilationMessages;
 import org.apache.ode.bpel.compiler.DefaultResourceFinder;
 import org.apache.ode.bpel.compiler.ResourceFinder;
-import org.apache.ode.bpel.compiler.SourceLocationImpl;
 import org.apache.ode.bpel.compiler.api.CompilationException;
 import org.apache.ode.bpel.compiler.api.CompilationMessage;
-import org.apache.ode.bpel.compiler.bom.Activity;
 import org.apache.ode.bpel.compiler.bom.Bpel11QNames;
 import org.apache.ode.bpel.compiler.bom.Bpel20QNames;
-import org.apache.ode.bpel.compiler.bom.BpelObjectFactory;
 import org.apache.ode.bpel.compiler.bom.Import;
-import org.apache.ode.bpel.compiler.bom.Process;
 import org.apache.ode.bpel.compiler.bom.Property;
 import org.apache.ode.bpel.compiler.bom.PropertyAlias;
 import org.apache.ode.bpel.compiler.wsdl.Definition4BPEL;
@@ -35,44 +26,52 @@ import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.bpel.o.OConstantVarType;
 import org.apache.ode.bpel.o.OExpressionLanguage;
-import org.apache.ode.bpel.o.OProcess;
+import org.apache.ode.bpel.o.OPointcut;
 import org.apache.ode.bpel.o.OScope;
 import org.apache.ode.bpel.o.OVarType;
 import org.apache.ode.utils.GUID;
 import org.apache.ode.utils.StreamUtils;
 import org.apache.ode.utils.SystemUtils;
-import org.apache.ode.utils.msg.MessageBundle;
 import org.apache.ode.utils.xsl.XslTransformHandler;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
+import de.tud.stg.ao4ode.compiler.aom.Advice;
+import de.tud.stg.ao4ode.compiler.aom.Aspect;
+import de.tud.stg.ao4ode.compiler.aom.AspectObjectFactory;
+import de.tud.stg.ao4ode.compiler.aom.Pointcut;
+
 public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 	
-	// FIXME: REMOVE: Testing only!
-	public String pointcut;
-	
+	// protected OAdvice _oprocess;
+		
 	public AO4BPEL2AspectCompiler() throws Exception {
 		super();
 	}
 
-	public OAspect compileAspect(URL aspectURL) throws CompilationException, IOException {
-		
+	public OAspect compileAspect(URL aspectURL, String scope) throws CompilationException, IOException {
 		// Load aspect from file
 		File aspectFile = new File(aspectURL.getFile());
+		return compileAspect(aspectFile, scope);
+	}
+	
+	public OAspect compileAspect(File aspectFile, String scope) throws CompilationException, IOException {
 		
-		// Parse aspect
-		Process process = null;
+		// TODO: Parse aspect
+		Aspect aspect = null;
         try {
             InputSource isrc = new InputSource(new ByteArrayInputStream(StreamUtils.read(aspectFile.toURL())));
             isrc.setSystemId(aspectFile.getAbsolutePath());
 
-            process = BpelObjectFactory.getInstance().parse(isrc,aspectFile.toURI());
+            aspect = AspectObjectFactory.getInstance().parseAspect(isrc,aspectFile.toURI());
         } catch (Exception e) {
         	e.printStackTrace();
         }
 
-        assert process != null;
-               
+        assert aspect != null;
+        
+        assert aspect.getAdvice() != null;
+        
         
         // TODO: Compile aspect
         ResourceFinder wf;
@@ -81,39 +80,58 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
         		aspectFile.getAbsoluteFile().getParentFile(),
         		suDir.getAbsoluteFile());        	     
         this.setResourceFinder(wf);
-
-        // TODO: Compile advice 
-        OAdvice oadvice;
+ 
+        OAspect oaspect;
         try {
         	File _outputDir = new File(SystemUtils.userDirectory());
-        	oadvice = this.compile(process,wf,BpelCompiler.getVersion(_outputDir.getAbsolutePath()));
+        	oaspect = this.compile(aspect,wf);
         }
         catch (CompilationException cex) {
             throw cex;
         }
         
-        OAspect oaspect = new OAspect();
-        oaspect.setoAdvice(oadvice);
-        
         return oaspect;
         
+	}
+	
+	public OAspect compile(final Aspect aspect, ResourceFinder rf) throws CompilationException {
+		
+		OAspect oaspect = new OAspect();
+		
+		oaspect.aspectName = aspect.getName();
+		
+		// TODO: Versioning of aspects?
+		OAdvice oadvice = compile(aspect.getAdvice(), rf);
+		
+		// Compile pointcuts
+        List<Pointcut> pointcuts = aspect.getPointcuts().getPointcuts();
+        for(Pointcut pointcut: pointcuts) {
+        	OPointcut oPointcut = new OPointcut(_oprocess, pointcut.getName(),
+        			pointcut.getQuery());
+        	oaspect.addPointcut(oPointcut);
+        }
+        
+        oaspect.setAdvice(oadvice);
+        
+        return oaspect;
 	}
 	
 	/**
      * Compile advice (based on BPEL compiler)
      */
-    public OAdvice compile(final Process process, ResourceFinder rf, long version) throws CompilationException {
-        if (process == null)
+    public OAdvice compile(final Advice advice, ResourceFinder rf) throws CompilationException {
+    	    	
+        if (advice == null)
             throw new NullPointerException("Null process parameter");
         
         setResourceFinder(rf);
-        _processURI = process.getURI();
-        _processDef = process;
+        _processURI = advice.getURI();
+        _processDef = advice;
         _generatedDate = new Date();
         _structureStack.clear();
 
         String bpelVersionUri = null;
-        switch (process.getBpelVersion()) {
+        switch (advice.getBpelVersion()) {
         case BPEL11:
             bpelVersionUri = Bpel11QNames.NS_BPEL4WS_2003_03;
             break;
@@ -124,31 +142,28 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
             bpelVersionUri = Bpel20QNames.NS_WSBPEL2_0_FINAL_EXEC;
             break;
         default:
-            throw new IllegalStateException("Bad bpel version: " + process.getBpelVersion());
+            throw new IllegalStateException("Bad bpel version: " + advice.getBpelVersion());
         }
 
         _oprocess = new OAdvice(bpelVersionUri);
         _oprocess.guid = null;
         _oprocess.constants = makeConstants();
-        _oprocess.debugInfo = createDebugInfo(process, "process");
+        _oprocess.debugInfo = createDebugInfo(advice, "process");
         
-        if (process.getTargetNamespace() == null) {
+        if (advice.getTargetNamespace() == null) {
             _oprocess.targetNamespace = "--UNSPECIFIED--";
-            recoveredFromError(process, new CompilationException(__cmsgs.errProcessNamespaceNotSpecified()));
+            recoveredFromError(advice, new CompilationException(__cmsgs.errProcessNamespaceNotSpecified()));
         } else {
             _oprocess.targetNamespace = _processDef.getTargetNamespace();
         }
         
-        if (process.getName() == null) {
+        if (advice.getName() == null) {
             _oprocess.processName = "--UNSPECIFIED--";
-            recoveredFromError(process, new CompilationException(__cmsgs.errProcessNameNotSpecified()));
+            recoveredFromError(advice, new CompilationException(__cmsgs.errProcessNameNotSpecified()));
         } else {
             _oprocess.processName = _processDef.getName();
         }
-        
-        // FIXME: for testing only
-        this.pointcut = process.getAttribute("pointcut",null);
-        
+                
         _oprocess.compileDate = _generatedDate;
 
         _konstExprLang = new OExpressionLanguage(_oprocess, null);
@@ -196,11 +211,11 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
         }
 
         OScope procesScope = new OScope(_oprocess, null);
-        procesScope.name = "__PROCESS_SCOPE:" + process.getName();
-        procesScope.debugInfo = createDebugInfo(process, null);
-        _oprocess.procesScope = compileScope(procesScope, process, new Runnable() {
+        procesScope.name = "__PROCESS_SCOPE:" + advice.getName();
+        procesScope.debugInfo = createDebugInfo(advice, null);
+        _oprocess.procesScope = compileScope(procesScope, advice, new Runnable() {
             public void run() {
-                if (process.getRootActivity() == null) {
+                if (advice.getRootActivity() == null) {
                     throw new CompilationException(__cmsgs.errNoRootActivity());
                 }
                 // Process custom properties are created as variables associated
@@ -218,7 +233,7 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
                             __log.debug("Compiled custom property variable " + ovar);
                     }
                 }
-                _structureStack.topScope().activity = compile(process.getRootActivity());
+                _structureStack.topScope().activity = compile(advice.getRootActivity());
             }
         });
 
@@ -244,7 +259,7 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
         }
         
         {
-            String digest = "version:" + version + ";" + _oprocess.digest();
+            String digest = "version:" + 1L + ";" + _oprocess.digest();
             _oprocess.guid = GUID.makeGUID(digest);
             if (__log.isDebugEnabled()) {
                 __log.debug("Compiled process digest: " + digest + "\nguid: " + _oprocess.guid);

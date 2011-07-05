@@ -65,6 +65,8 @@ import org.apache.ode.il.OMUtils;
 import org.apache.ode.utils.fs.FileUtils;
 import org.apache.ode.utils.Namespaces;
 
+import de.tud.stg.ao4ode.aspectmanager.AspectStore;
+
 /**
  * Axis wrapper for process deployment.
  */
@@ -76,8 +78,12 @@ public class DeploymentWebService {
     private final OMNamespace _deployapi;
 
     private File _deployPath;
+    // AO4ODE: deployPathAspects
+    private File _deployPathAspects;
     private DeploymentPoller _poller;
     private ProcessStore _store;
+    // AO4ODE: aspectStore
+    private AspectStore _aspectstore;
    
     
     public DeploymentWebService() {
@@ -85,9 +91,13 @@ public class DeploymentWebService {
         _deployapi = OMAbstractFactory.getOMFactory().createOMNamespace("http://www.apache.org/ode/deployapi","deployapi");
     }
 
-    public void enableService(AxisConfiguration axisConfig, ProcessStore store,
+    // AO4ODE: Added aspectstore
+    public void enableService(AxisConfiguration axisConfig, ProcessStore store, AspectStore aspectstore, 
                               DeploymentPoller poller, String rootpath, String workPath) throws AxisFault, WSDLException {
         _deployPath = new File(workPath, "processes");
+        // AO4ODE:
+        _deployPathAspects = new File(workPath, "aspects");
+        _aspectstore = aspectstore;
         _store = store;
         _poller = poller;
 
@@ -111,7 +121,110 @@ public class DeploymentWebService {
             boolean unknown = false;
 
             try {
-                if (operation.equals("deploy")) {
+            	// TODO: AO4ODE: Aspect Deployment            	
+            	if (operation.equals("deployAspect")) {
+            		log.debug("AO4ODE: Deploying ASPECT!");
+            		OMElement deployElement = messageContext.getEnvelope().getBody().getFirstElement();
+                    OMElement namePart = deployElement.getFirstChildWithName(new QName(null, "name"));
+                    // "be liberal in what you accept from others"
+                    if (namePart == null) {
+                       namePart = OMUtils.getFirstChildWithName(deployElement, "name");
+                       if( namePart == null ) {
+                               throw new OdeFault("The name part is missing");
+                       } else if (__log.isWarnEnabled()) {
+                            __log.warn("Invalid incoming request detected for operation " + messageContext.getAxisOperation().getName() + ". Name part should have no namespace but has " + namePart.getQName().getNamespaceURI());
+                        }
+                    }
+                    
+                    OMElement scopePart = deployElement.getFirstChildWithName(new QName(null, "scope"));
+
+                    OMElement packagePart = deployElement.getFirstChildWithName(new QName(null, "package"));
+
+                    // "be liberal in what you accept from others"
+                    if (packagePart == null) {
+                        packagePart = OMUtils.getFirstChildWithName(deployElement, "package");
+                        if (packagePart != null && __log.isWarnEnabled()) {
+                            __log.warn("Invalid incoming request detected for operation " + messageContext.getAxisOperation().getName() + ". Package part should have no namespace but has " + packagePart.getQName().getNamespaceURI());
+                        }
+                    }
+                    
+                    String scope = "true.";
+                    if(scopePart != null) {
+                    	scope = scopePart.getText(); 
+                    }
+
+                    OMElement zip = null;
+                    if (packagePart != null) {
+                        zip = packagePart.getFirstChildWithName(new QName(Namespaces.ODE_DEPLOYAPI_NS, "zip"));
+                        // "be liberal in what you accept from others"
+                        if (zip == null) {
+                            zip = OMUtils.getFirstChildWithName(packagePart, "zip");
+                            if (zip != null && __log.isWarnEnabled()) {
+                                String ns = zip.getQName().getNamespaceURI() == null || zip.getQName().getNamespaceURI().length() == 0 ? "empty" : zip.getQName().getNamespaceURI();
+                                __log.warn("Invalid incoming request detected for operation " + messageContext.getAxisOperation().getName() + ". <zip/> element namespace should be " + Namespaces.ODE_DEPLOYAPI_NS + " but was " + ns);
+                            }
+                        }
+                    }
+
+                    if (zip == null || packagePart == null)
+                        throw new OdeFault("Your message should contain an element named 'package' with a 'zip' element"); 
+
+                    String bundleName = namePart.getText().trim();
+                    if (!validBundleName(namePart.getText()))
+                        throw new OdeFault("Invalid bundle name, only non empty alpha-numerics and _ strings are allowed.");
+
+                    OMText binaryNode = (OMText) zip.getFirstOMChild();
+                    if (binaryNode == null) {
+                        throw new OdeFault("Empty binary node under <zip> element");
+                    }
+                    binaryNode.setOptimize(true);
+                    try {
+                        // We're going to create a directory under the deployment root and put
+                        // files in there. The poller shouldn't pick them up so we're asking
+                        // it to hold on for a while.
+                    	// TODO: Aspect Poller
+                        // _poller.hold();
+
+                        File dest = new File(_deployPathAspects, bundleName + "-" + _aspectstore.getCurrentVersion());
+                        dest.mkdir();
+                        unzip(dest, (DataHandler) binaryNode.getDataHandler());
+
+                        // Check that we have a deploy.xml
+                        // File deployXml = new File(dest, "deploy.xml");
+                        // if (!deployXml.exists())
+                        //    throw new OdeFault("The deployment doesn't appear to contain a deployment " +
+                        //            "descriptor in its root directory named deploy.xml, aborting.");
+
+                        Collection<QName> deployed = _aspectstore.deployAspect(dest, scope);
+
+                        File deployedMarker = new File(_deployPath, dest.getName() + ".deployed");
+                        deployedMarker.createNewFile();
+
+                        // Telling the poller what we deployed so that it doesn't try to deploy it again
+                        // TODO: Aspect Poller
+                        // _poller.markAsDeployed(dest);
+                        __log.info("Deployment of aspect " + dest.getName() + " successful.");
+
+                        OMElement response = factory.createOMElement("response", null);
+
+                        if (__log.isDebugEnabled()) __log.debug("Deployed aspect package: "+dest.getName());
+                        OMElement d = factory.createOMElement("name", _deployapi);
+                        d.setText(dest.getName());
+                        response.addChild(d);
+
+                        for (QName pid : deployed) {
+                            if (__log.isDebugEnabled()) __log.debug("Deployed PID: "+pid);
+                            d = factory.createOMElement("id", _deployapi);
+                            d.setText(pid);
+                            response.addChild(d);
+                        }
+                        sendResponse(factory, messageContext, "deployAspectResponse", response);
+                    } finally {
+                    	// TODO: Aspect Poller
+                        // _poller.release();
+                    }
+            	}
+            	else if (operation.equals("deploy")) {
                     OMElement deployElement = messageContext.getEnvelope().getBody().getFirstElement();
                     OMElement namePart = deployElement.getFirstChildWithName(new QName(null, "name"));
                     // "be liberal in what you accept from others"
