@@ -4,7 +4,7 @@ import org.apache.ode.bpel.o.OAdvice.TYPE;
 
 public class OAdvice extends OProcess {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 5258360738412039062L;
 	
 	public static enum TYPE {UNKOWN, BEFORE, AFTER, AROUND}
 	private TYPE type = TYPE.UNKOWN;

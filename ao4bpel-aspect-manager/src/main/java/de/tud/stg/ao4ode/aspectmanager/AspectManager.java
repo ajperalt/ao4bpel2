@@ -68,8 +68,8 @@ public class AspectManager {
 			// Return (composite) advice for current join point
 			Collection<AspectInfo> aspects = aspectStore.getAspects();
 			
-			log.debug("AspectStore before PC check: ");
-			log.debug(aspects);
+			// log.debug("AspectStore before PC check: ");
+			// log.debug(aspects);
 			
 			for(AspectInfo aspect : aspects) {
 				// TODO: Build composite advice, for now, use the first match

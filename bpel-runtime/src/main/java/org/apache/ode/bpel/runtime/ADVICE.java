@@ -33,7 +33,10 @@ public class ADVICE extends PROCESS {
 	private static final long serialVersionUID = -3792083256538970881L;
 	
 	@Override
-	public void run() {		
+	public void run() {
+		
+		__log.debug("Running ADVICE: " + this.toString());
+		
         BpelRuntimeContext ntive = getBpelRuntimeContext();
         Long scopeInstanceId = ntive.createScopeInstance(null, oAdvice.procesScope);
         
@@ -54,7 +57,12 @@ public class ADVICE extends PROCESS {
         
         // Run advice
         __log.info("RUNNING BEFORE ADVICE");
-        instance(new SCOPE(child, adviceScopeFrame, adviceLinkFrame));
+        SCOPE scope = new SCOPE(child, adviceScopeFrame, adviceLinkFrame);
+        
+        __log.debug("Creating instance of new Scope");
+        __log.debug(scope.toString());
+        
+        instance(scope);
         
         object(new ParentScopeChannelListener(child.parent) {
             private static final long serialVersionUID = -8564969578471906493L;
@@ -95,6 +103,7 @@ public class ADVICE extends PROCESS {
     }
 	
 	private void proceed() {
+		__log.debug("PROCEEDING!");
 		activityGuard.runActivity(joinPointActivity);
 	}
 
@@ -104,6 +113,14 @@ public class ADVICE extends PROCESS {
 
 	public OProcess getoAdvice() {
 		return oAdvice;
+	}
+	
+	@Override
+	public String toString() {
+		return "ADVICE: ["			
+			+ this.getJoinPointActivity().getO()
+			+ this.getoAdvice()
+			+ "]";
 	}
 
 }

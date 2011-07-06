@@ -471,5 +471,14 @@ class SCOPE extends ACTIVITY {
             this.tc = tc;
         }
     }
+    
+    // AO4ODE: For debugging, remove!
+    public String toString() {
+    	return this._oscope.toString()
+    		+ ", " + _self
+    		+ ", " + _scopeFrame
+    		+ ", " + _linkFrame;
+    	
+    }
 
 }

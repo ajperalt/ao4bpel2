@@ -44,7 +44,10 @@ public class DynamicFactsBpelEventListener implements BpelEventListener {
 		
 		// Record all ActivityEvents
 		if(bpelEvent instanceof ActivityEvent) {
+			
 			ActivityEvent activityEvent = (ActivityEvent)bpelEvent;
+			
+			log.debug("ACTIVITY_EVENT: " + activityEvent.getO().getXPath() + ", " + activityEvent.getActivityId()  + ", " + activityEvent.getActivityDeclarationId());
 			
 			// ...but only those with xpath!
 			if(activityEvent.getO().getXPath() != null) {

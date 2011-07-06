@@ -89,7 +89,7 @@ import java.util.Set;
 //AO4ODE: Changed Visibility to public
 public class ACTIVITYGUARD extends ACTIVITY {
     private static final long serialVersionUID = 1L;
-
+    
     private static final Log __log = LogFactory.getLog(ACTIVITYGUARD.class);
 
     private static final ActivityTemplateFactory __activityTemplateFactory = new ActivityTemplateFactory();
@@ -128,13 +128,18 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 // AO4ODE: Pointcut matching
             	AspectManager am = AspectManager.getInstance();
 
-            	final OAdvice oAdvice = am.getAdvice(getBpelRuntimeContext().getPid(), _self.o);
+            	final OAdvice oAdvice = am.getAdvice(
+            			getBpelRuntimeContext().getPid(),
+            			_self.o);
             	
-            	// FIXME: No pointcut matching during advice execution?
+            	// FIXME: No pointcut matching during advice execution?            	
                 if(!(_self.o.getOwner() instanceof OAdvice) && oAdvice != null) {
                 	
                     // RUN ADVICE
-                	ADVICE advice = new ADVICE(this, oAdvice, activity);                	
+                	ADVICE advice = new ADVICE(this, oAdvice, activity);
+                	
+                	__log.debug("Executing ADVICE: " + advice);
+                	
                 	instance(advice);
                 	
                 }
