@@ -12,7 +12,9 @@ import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -176,4 +178,12 @@ public class AspectDeploymentUnitDir {
         return _duDirectory.getName();
     }
 
+	public Set<QName> getAspectNames() {
+		return _aspects.keySet();
+    }
+	
+	// TODO:
+	public long getVersion() {
+        return 0;
+    }
 }

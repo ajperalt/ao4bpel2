@@ -1171,9 +1171,41 @@ org.apache.ode.DeploymentHandling = {};
         }
     }
     
+    // AO4ODE:
+    function loadDeployedAspectPackages(){
+        try{
+            var response = DeploymentService.listDeployedAspectPackages();
+            return response;    
+        }catch(e){
+            // probably a connection error. We don't want to spam the user, so we're just logging it if a console is available
+            debug("Exception in " + arguments.callee.toString().match(/function\s+([^(]+)/)[1] + ": " + e.toString());
+            return null;
+        }
+    }
+    
     function getDeployedPackages(){
         var packageNames = [];
         var response = loadDeployedPackages();
+        if (response == null) {
+          return 0;
+        }
+        var names = org.apache.ode.DOMHelper.getElementsByTagName('name',"http://www.apache.org/ode/deployapi","deployapi",response);
+        //var names = response.getElementsByTagName('name');
+        if (names.length != 0) {
+            for (var i = 0; i < names.length; i++) {
+                packageNames[i] = org.apache.ode.DOMHelper.getText(names[i]);
+            }
+            return packageNames;
+        }else{
+            return 0;
+        }
+        
+    }
+    
+    // AO4ODE:
+    function getDeployedAspectPackages(){
+        var packageNames = [];
+        var response = loadDeployedAspectPackages();
         if (response == null) {
           return 0;
         }
@@ -1210,6 +1242,29 @@ org.apache.ode.DeploymentHandling = {};
             return 0;
         }
     }
+    
+    // AO4ODE:
+    function getAspects(packageName){
+        try{
+            var aspects = [];
+            var response = DeploymentService.listAspects(packageName);
+            var ids = org.apache.ode.DOMHelper.getElementsByTagName('id',"http://www.apache.org/ode/deployapi","deployapi",response);
+            if(ids.length != 0){
+                for(var i =0; i < ids.length; i++){
+                    processes[i] = org.apache.ode.DOMHelper.getText(ids[i]);
+                }
+                return aspects;
+            }else{
+                return 0;
+            }
+            
+        }catch(e){
+            // probably a connection error. We don't want to spam the user, so we're just logging it if a console is available
+            debug("Exception in " + arguments.callee.toString().match(/function\s+([^(]+)/)[1] + ": " + e.toString());
+            return 0;
+        }
+    }
+    
     function getPackageContents(packageName){
         var contents = [];
         var i = 0;
@@ -1304,6 +1359,76 @@ org.apache.ode.DeploymentHandling = {};
         }
 
 
+    }
+    
+    // AO4ODE:
+    function populateDeployedAspectPackages(){    	
+    	var contentHtml = '';
+        var deployedPacks = getDeployedAspectPackages();
+        for(var i = 0; i < deployedPacks.length; i++){
+            var packageundepId = deployedPacks[i].replace(/-/, "_")+"undeployid";
+            var packageundepVar = deployedPacks[i].replace(/-/,"_")+"undeployvar";
+            var packageDetailsId = deployedPacks[i].replace(/-/,"_")+"detid";
+            var packageDetailsVar = deployedPacks[i].replace(/-/,"_")+"detvar";
+            contentHtml += '<div class="yui-cms-item yui-panel selected"><div class="hd">'+
+                        deployedPacks[i] +
+                        '</div><div class="bd"><div class="fixed">'+
+                        '<table><tr class="alt"><td>Aspects:</td></tr><tr><td>'
+            //var processes = getAspects(deployedPacks[i]);
+            // if(processes != 0){
+            //    for(var j = 0; j < processes.length; j++){
+            //        contentHtml += processes[j] + (j+1 < processes.length ? ', ' : '');
+            //    }
+            //}else{
+                contentHtml += 'Error occurred during getting processes or no processes.';
+            // }
+            contentHtml += '</td></tr><tr class="alt"><td>Contents:</td></tr><tr><td>';
+            // var content  = getPackageContents(deployedPacks[i]);
+            // if(content != null){
+            //    for(var k =0; k < content.length; k++){
+            //        var strC = content[k];
+            //        var index = strC.indexOf('/');
+            //        contentHtml += strC.substr(index+1) + (k+1 < content.length ? ", " : "");
+            //    }
+            //}else{
+                contentHtml += 'Error occurred during getting package Content or no content.'
+            //}
+            contentHtml += '</td></tr></table></div></div><div class="ft">'+
+                        '<span id="'+ packageundepId + '" class="yui-button yui-push-button">'+
+                        '<span class="first-child"><input type="button" name="'+ packageundepVar +
+                        'name" value="Undeploy"></span></span>'+
+                        '<span id="'+ packageDetailsId +
+                        '" class="yui-button yui-push-button"><span class="first-child">'+
+                        '<input type="button" name="'+ packageDetailsVar +'name" value="Details"></span></span>'+           
+                        '<script type="text/javascript">'+
+                        'function '+ packageundepVar + 
+                        'undeployPackage(){org.apache.ode.DeploymentHandling.undeployPackage("'+ 
+                        deployedPacks[i] +'");}' +
+                        'function '+ packageDetailsVar + 
+                        'viewDetails(){org.apache.ode.DeploymentHandling.viewPackDetails("'+ 
+                        deployedPacks[i] +'"'+ ');}' +
+                        'var ' + packageundepVar + '=new YAHOO.widget.Button("'+ packageundepId + '");'+
+                        packageundepVar + '.addListener("click", ' + packageundepVar + 'undeployPackage); '+
+                        'var ' + packageDetailsVar + '=new YAHOO.widget.Button("'+ packageDetailsId + '");' +
+                        packageDetailsVar +'.addListener("click", ' + packageDetailsVar + 'viewDetails); '  +
+                        '</script>'+
+                        '</div> <div class="actions"><a href="#" class="accordionToggleItem">&nbsp;</a>'+
+                        '</div></div>'
+            //alert(contentHtml);
+                                            
+        }
+        var deployed = document.getElementById('deployedAspects');
+        var newDiv = document.createElement('div');
+        YAHOO.util.Dom.addClass(newDiv, 'myAccordion');
+        var innerDiv = document.createElement('div');
+        YAHOO.util.Dom.addClass(innerDiv, 'yui-cms-accordion multiple fade fixIE');
+        innerDiv.innerHTML = contentHtml;
+        newDiv.appendChild(innerDiv);
+        if(deployed.firstChild){
+            deployed.replaceChild(newDiv, deployed.firstChild);
+        }else{
+            deployed.appendChild(newDiv);
+        }
     }
 
     function viewPackDetails(packageName){
@@ -1414,5 +1539,7 @@ org.apache.ode.DeploymentHandling = {};
     ns.undeployPackage = undeployPackage;
     ns.viewPackDetails = viewPackDetails;
     ns.populateDeployedPacks = populateDeployedPackages;
+    // AO4ODE
+    ns.populateDeployedAspectPacks = populateDeployedAspectPackages;
 })();
 

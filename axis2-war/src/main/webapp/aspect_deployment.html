@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
     <head>
-        <title>Apache ODE | Aspects</title>
+        <title>Apache ODE | Aspect Deployment</title>
         <link rel="stylesheet" href="css/style.css" type="text/css" media="screen, projection"/>
         <link rel="stylesheet" href="js/yui/css/container.css" media="screen, projection"/>
         <link rel="stylesheet" href="js/yui/css/button.css" media="screen, projection"/>
@@ -36,8 +36,8 @@
         <script type="text/javascript">
             
             function init(){
-                org.apache.ode.DeploymentHandling.populateDeployedPacks();
-                setInterval('org.apache.ode.DeploymentHandling.populateDeployedAspects()', 15000);
+                org.apache.ode.DeploymentHandling.populateDeployedAspectPacks();
+                setInterval('org.apache.ode.DeploymentHandling.populateDeployedAspectPacks()', 15000);
                 var myTabs = new YAHOO.widget.TabView("tabt");
             }
             
@@ -108,8 +108,11 @@
                 <li>
                     <a href="deployment/" target="_blank">Deployment Browser</a>
                 </li>
-                <li class="current">
-                    <a href="#">Aspects</a>
+                <li>
+                    <a href="aspects.html">Aspects</a>
+                </li>
+                <li>
+                    <a class="current" href="aspect_deployment.html">Aspect Deployment</a>
                 </li>
             </ul>
         </div>
@@ -119,9 +122,8 @@
                     <div id="content" class="yui-skin-sam">
                         
                         <h2>Deployed Aspects</h2>
-                        <!-- <div id="deployed" class="yui-skin-sam"></div> -->
-                        <p>TODO: Show deployed aspects</p>
-                        
+                        <div id="deployedAspects" class="yui-skin-sam"></div>
+                                                
                         <h2 class="depn">Deploy New Aspect</h2>
                         <script type="text/javascript">
                         // Removes leading whitespaces
@@ -148,7 +150,7 @@
 
                         function handleSuccess(o){
                             document.getElementById('opstat').innerHTML = '<h2 style="color:red;border-bottom:0px;">'+ trim(o.responseText).replace(/\n/g, "") + '</h2>';
-                            org.apache.ode.DeploymentHandling.populateDeployedPacks();
+                            org.apache.ode.DeploymentHandling.populateDeployedAspectPacks();
                         }
                         function handleFailure(o){
                             document.getElementById('opstat').innerHTML = trim(o.responseText).replace(/\n/g, "");

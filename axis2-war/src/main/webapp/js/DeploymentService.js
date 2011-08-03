@@ -265,6 +265,128 @@ DeploymentService.listProcesses =
     }
 DeploymentService.listProcesses.callback = null;
 
+
+// AO4ODE:
+
+
+DeploymentService.listDeployedAspectPackages =
+    function listDeployedAspectPackages()
+    {
+        var isAsync, request, response, resultValue;
+        
+        this._options = new Array();
+        isAsync = (this.listDeployedAspectPackages.callback != null && typeof(this.listDeployedAspectPackages.callback) == 'function');
+        request = 
+            '<p:listDeployedAspectPackages xmlns:p="http://www.apache.org/ode/pmapi">' +
+            '</p:listDeployedAspectPackages>' ;
+        
+        if (isAsync) {
+            try {
+                this._call(
+                    "listDeployedAspectPackages",
+                    request,
+                    function(thisRequest, callbacks) {
+                        if (thisRequest.error != null) {
+                            callbacks[1](thisRequest.error);
+                        } else {
+                            response = thisRequest.responseXML;
+                            if (response == null) {
+                                resultValue = null;
+                            } else {
+                                resultValue = /* packageNames */ response.documentElement;
+                            }
+                            callbacks[0](resultValue);
+                        }
+                    },
+                    new Array(this.listDeployedAspectPackages.callback, this.listDeployedAspectPackages.onError)
+                );
+            } catch (e) {
+                var error;
+                if (WebServiceError.prototype.isPrototypeOf(e)) {
+                    error = e;
+                } else if (typeof(e) == "string") {
+                    error = new WebServiceError(e, "Internal Error");
+                } else {
+                    error = new WebServiceError(e.description, e.number, e.number);
+                }
+                this.listDeployedAspectPackages.onError(error);
+            }
+        } else {
+            try {
+                                response = this._call("listDeployedAspectPackages", request);
+                                resultValue = /* packageNames */ response.documentElement;
+                                return resultValue;
+            } catch (e) {
+                if (typeof(e) == "string") throw(e);
+                if (e.message) throw(e.message);
+                throw (e.reason + e.detail);
+            }
+        }
+        return null; // Suppress warnings when there is no return.
+    }
+DeploymentService.listDeployedAspectPackages.callback = null;
+
+
+DeploymentService.listAspects =
+    function listAspects(/* string */ _packageName)
+    {
+        var isAsync, request, response, resultValue;
+        
+        this._options = new Array();
+        isAsync = (this.listAspects.callback != null && typeof(this.listAspects.callback) == 'function');
+        request = 
+            '<p:listAspects xmlns:p="http://www.apache.org/ode/pmapi">' +
+                (_packageName == null ? '' : '<packageName>' + this._encodeXML(_packageName) + '</packageName>') +
+            '</p:listAspects>' ;
+        
+        if (isAsync) {
+            try {
+                this._call(
+                    "listAspects",
+                    request,
+                    function(thisRequest, callbacks) {
+                        if (thisRequest.error != null) {
+                            callbacks[1](thisRequest.error);
+                        } else {
+                            response = thisRequest.responseXML;
+                            if (response == null) {
+                                resultValue = null;
+                            } else {
+                                resultValue = /* processIds */ response.documentElement;
+                            }
+                            callbacks[0](resultValue);
+                        }
+                    },
+                    new Array(this.listAspects.callback, this.listAspects.onError)
+                );
+            } catch (e) {
+                var error;
+                if (WebServiceError.prototype.isPrototypeOf(e)) {
+                    error = e;
+                } else if (typeof(e) == "string") {
+                    error = new WebServiceError(e, "Internal Error");
+                } else {
+                    error = new WebServiceError(e.description, e.number, e.number);
+                }
+                this.listAspects.onError(error);
+            }
+        } else {
+            try {
+                                response = this._call("listAspects", request);
+                                resultValue = /* processIds */ response.documentElement;
+                                return resultValue;
+            } catch (e) {
+                if (typeof(e) == "string") throw(e);
+                if (e.message) throw(e.message);
+                throw (e.reason + e.detail);
+            }
+        }
+        return null; // Suppress warnings when there is no return.
+    }
+DeploymentService.listAspects.callback = null;
+
+
+
 // WebService object.
 function WebService(endpointName)
 {
@@ -313,7 +435,9 @@ function WebService(endpointName)
                     "listDeployedPackages" : "http://www.apache.org/ode/deployapi/DeploymentPortType/listDeployedPackagesRequest",
                     "getProcessPackage" : "http://www.apache.org/ode/deployapi/DeploymentPortType/getProcessPackageRequest",
                     "listProcesses" : "http://www.apache.org/ode/deployapi/DeploymentPortType/listProcessesRequest",
-                    "deploy" : "http://www.apache.org/ode/deployapi/DeploymentPortType/deployRequest"
+                    "deploy" : "http://www.apache.org/ode/deployapi/DeploymentPortType/deployRequest",
+                    // AO4ODE:
+                    "listDeployedAspectPackages" : "http://www.apache.org/ode/deployapi/DeploymentPortType/listDeployedAspectPackagesRequest",
                 }
             }
     };

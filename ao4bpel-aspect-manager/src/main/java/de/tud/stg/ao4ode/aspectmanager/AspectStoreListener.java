@@ -7,6 +7,6 @@ import org.apache.ode.bpel.iapi.ProcessStoreEvent;
  */
 public interface AspectStoreListener {
     
-    public void onAspectStoreEvent(ProcessStoreEvent event);
+    public void onAspectStoreEvent(AspectStoreEvent event);
 
 }

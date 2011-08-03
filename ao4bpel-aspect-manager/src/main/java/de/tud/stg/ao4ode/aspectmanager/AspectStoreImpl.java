@@ -1,12 +1,15 @@
 package de.tud.stg.ao4ode.aspectmanager;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.xml.namespace.QName;
 
@@ -15,9 +18,13 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.compiler.api.CompilationException;
 import org.apache.ode.bpel.iapi.ContextException;
 import org.apache.ode.bpel.iapi.EndpointReferenceContext;
+import org.apache.ode.bpel.iapi.ProcessStoreEvent;
 import org.apache.ode.bpel.iapi.ProcessStoreListener;
 import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.il.config.OdeConfigProperties;
+import org.apache.ode.store.ConfStoreConnection;
+import org.apache.ode.store.DeploymentUnitDAO;
+import org.apache.ode.store.DeploymentUnitDir;
 import org.apache.ode.store.Messages;
 import org.apache.ode.utils.msg.MessageBundle;
 
@@ -38,6 +45,8 @@ public class AspectStoreImpl implements AspectStore {
     protected File _configDir;
 
 	private OdeConfigProperties props;
+		
+	private final CopyOnWriteArrayList<AspectStoreListener> _listeners = new CopyOnWriteArrayList<AspectStoreListener>();
     
 	public AspectStoreImpl(EndpointReferenceContext eprContext, OdeConfigProperties props) {
         this.eprContext = eprContext;
@@ -85,25 +94,57 @@ public class AspectStoreImpl implements AspectStore {
 		UUID uuid = UUID.randomUUID();
 		return uuid.getMostSignificantBits();
     }
-
-	public Collection<QName> deployAspect(File deploymentUnitDirectory) {
-		// TODO Auto-generated method stub
-		return null;
+	
+	public Collection<QName> undeployAspect(final File dir) {
+		return undeploy(dir.getName());
 	}
+	
+	public Collection<QName> undeploy(final String duName) {
+        
+        Collection<QName> undeployed = Collections.emptyList();
+        AspectDeploymentUnitDir du;
+        // _rw.writeLock().lock();
+        try {
+            du = _deploymentUnits.remove(duName);
+            if (du != null) {
+                undeployed = toAids(du.getAspectNames(), du.getVersion());
+            }
+            
+            for (QName pn : undeployed) {
+                fireEvent(new AspectStoreEvent(AspectStoreEvent.Type.UNDEPLOYED, pn, du.getName()));
+                __log.info("Aspect " + pn.toString() + " has been undeployed!");
+            }
+            
+            _aspects.keySet().removeAll(undeployed);
+        } finally {
+            // _rw.writeLock().unlock();
+        }
 
-	public Collection<QName> undeployAspect(File file) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        return undeployed;
+    }
+	
+	private List<QName> toAids(Collection<QName> aspectTypes, long version) {
+        ArrayList<QName> result = new ArrayList<QName>();
+        for (QName pqName : aspectTypes) {
+            result.add(toAid(pqName, version));
+        }
+        return result;
+    }
+
+    private QName toAid(QName aspectType, long version) {
+        return new QName(aspectType.getNamespaceURI(), aspectType.getLocalPart() + "-" + version);
+    }
+	
 
 	public Collection<String> getAspectPackages() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ArrayList<String>(_deploymentUnits.keySet());
 	}
 
 	public List<QName> listAspects(String packageName) {
-		// TODO Auto-generated method stub
-		return null;
+		AspectDeploymentUnitDir du = _deploymentUnits.get(packageName);
+        if (du == null)
+            return null;
+        return toAids(du.getAspectNames(), du.getVersion());
 	}
 
 	public List<QName> getAspectList() {
@@ -120,5 +161,11 @@ public class AspectStoreImpl implements AspectStore {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	protected void fireEvent(AspectStoreEvent ase) {
+        __log.debug("firing event: " + ase);
+        for (AspectStoreListener psl : _listeners)
+            psl.onAspectStoreEvent(ase);
+    }
 
 }

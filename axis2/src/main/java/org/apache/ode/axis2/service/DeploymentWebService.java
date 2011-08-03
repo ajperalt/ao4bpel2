@@ -121,7 +121,10 @@ public class DeploymentWebService {
             boolean unknown = false;
 
             try {
-            	// TODO: AO4ODE: Aspect Deployment            	
+            	
+            	//
+            	// AO4ODE: Aspect Deployment
+            	//
             	if (operation.equals("deployAspect")) {
             		log.debug("AO4ODE: Deploying ASPECT!");
             		OMElement deployElement = messageContext.getEnvelope().getBody().getFirstElement();
@@ -223,8 +226,66 @@ public class DeploymentWebService {
                     	// TODO: Aspect Poller
                         // _poller.release();
                     }
-            	}
-            	else if (operation.equals("deploy")) {
+            	} else if (operation.equals("undeployAspect")) {
+	                OMElement part = messageContext.getEnvelope().getBody().getFirstElement().getFirstElement();
+	                if (part == null) throw new OdeFault("Missing bundle name in undeploy message.");
+	
+	                String pkg = part.getText().trim();
+	                if (!validBundleName(pkg)) {
+	                    throw new OdeFault("Invalid bundle name, only non empty alpha-numerics and _ strings are allowed.");
+	                }
+	
+	                File deploymentDir = new File(_deployPathAspects, pkg);
+	                if (!deploymentDir.exists())
+	                    throw new OdeFault("Couldn't find deployment package " + pkg + " in directory " + _deployPathAspects);
+	
+	                try {
+	                    // We're going to delete files & directories under the deployment root.
+	                    // Put the poller on hold to avoid undesired side effects
+	                    // AO4ODE: TODO: Polling _poller.hold();
+	
+	                    Collection<QName> undeployed = _aspectstore.undeployAspect(deploymentDir);
+	
+	                    File deployedMarker = new File(deploymentDir + ".deployed");
+	                    deployedMarker.delete();
+	                    FileUtils.deepDelete(deploymentDir);
+	
+	                    OMElement response = factory.createOMElement("response", null);
+	                    response.setText("" + (undeployed.size() > 0));
+	                    sendResponse(factory, messageContext, "undeployAspectResponse", response);
+	                    // AO4ODE: TODO: _poller.markAsUndeployed(deploymentDir);
+	                } finally {
+	                    // AO4ODE, TODO: _poller.release();
+	                }
+	            } else if (operation.equals("listDeployedAspectPackages")) {
+	                Collection<String> packageNames = _aspectstore.getAspectPackages();
+	                OMElement response = factory.createOMElement("deployedAspectPackages", null);
+	                for (String name : packageNames) {
+	                    OMElement nameElmt = factory.createOMElement("name", _deployapi);
+	                    nameElmt.setText(name);
+	                    response.addChild(nameElmt);
+	                }
+	                sendResponse(factory, messageContext, "listDeployedAspectPackagesResponse", response);
+	            } else if (operation.equals("listAspects")) {
+	                OMElement namePart = messageContext.getEnvelope().getBody().getFirstElement().getFirstElement();
+	                List<QName> processIds = _aspectstore.listAspects(namePart.getText());
+	                if (processIds == null) {
+	                    throw new OdeFault("Could not find aspect package: " + namePart.getText());
+	                }
+	                OMElement response = factory.createOMElement("aspectIds", null);
+	                for (QName qname : processIds) {
+	                    OMElement nameElmt = factory.createOMElement("id", _deployapi);
+	                    nameElmt.setText(qname);
+	                    response.addChild(nameElmt);
+	                }
+	                sendResponse(factory, messageContext, "listAspectsResponse", response);
+	            }
+            
+            
+	            //
+	            // Process Deployment
+	            //
+	            else if (operation.equals("deploy")) {
                     OMElement deployElement = messageContext.getEnvelope().getBody().getFirstElement();
                     OMElement namePart = deployElement.getFirstChildWithName(new QName(null, "name"));
                     // "be liberal in what you accept from others"

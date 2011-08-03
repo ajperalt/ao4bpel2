@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.ode.bpel.iapi.ProcessConf;
 import org.apache.ode.bpel.iapi.ProcessStoreListener;
 
 public interface AspectStore {
@@ -31,7 +32,7 @@ public interface AspectStore {
     Collection<String> getAspectPackages();
 
     /**
-     * Lists all processe ids in a given package.
+     * Lists all aspect ids in a given package.
      * @return an array of process id QNames
      */
     List<QName> listAspects(String packageName);
@@ -41,8 +42,7 @@ public interface AspectStore {
      * @return list of  aspect qnames
      */
     List<QName> getAspectList();
-
-   
+    
     /**
      * Register a listener
      * @param asl  {@link AspectStoreListener} 
