@@ -268,6 +268,66 @@ DeploymentService.listProcesses.callback = null;
 
 // AO4ODE:
 
+DeploymentService.undeployAspect =
+    function undeploy(/* QName */ _packageName)
+    {
+        var isAsync, request, response, resultValue;
+        
+        this._options = new Array();
+        isAsync = (this.undeployAspect.callback != null && typeof(this.undeployAspect.callback) == 'function');
+        request = 
+            '<p:undeployAspect xmlns:p="http://www.apache.org/ode/pmapi">' +
+                (_packageName == null ? '' : '<packageName>' + this._encodeXML(_packageName) + '</packageName>') +
+            '</p:undeploy>' ;
+        
+        if (isAsync) {
+            try {
+                this._call(
+                    "undeployAspect",
+                    request,
+                    function(thisRequest, callbacks) {
+                        if (thisRequest.error != null) {
+                            callbacks[1](thisRequest.error);
+                        } else {
+                            response = thisRequest.responseXML;
+                            if (response == null) {
+                                resultValue = null;
+                            } else {
+                                var extractedValue = WSRequest.util._stringValue(response.documentElement);
+                                resultValue = /* Boolean */ extractedValue == "true" || extractedValue == "1";
+                            }
+                            callbacks[0](resultValue);
+                        }
+                    },
+                    new Array(this.undeployAspect.callback, this.undeployAspect.onError)
+                );
+            } catch (e) {
+                var error;
+                if (WebServiceError.prototype.isPrototypeOf(e)) {
+                    error = e;
+                } else if (typeof(e) == "string") {
+                    error = new WebServiceError(e, "Internal Error");
+                } else {
+                    error = new WebServiceError(e.description, e.number, e.number);
+                }
+                this.undeployAspect.onError(error);
+            }
+        } else {
+            try {
+                                response = this._call("undeployAspect", request);
+                                var extractedValue = WSRequest.util._stringValue(response.documentElement);
+                                resultValue = /* Boolean */ extractedValue == "true" || extractedValue == "1";
+                                return resultValue;
+            } catch (e) {
+                if (typeof(e) == "string") throw(e);
+                if (e.message) throw(e.message);
+                throw (e.reason + e.detail);
+            }
+        }
+        return null; // Suppress warnings when there is no return.
+    }
+DeploymentService.undeployAspect.callback = null;
+
 
 DeploymentService.listDeployedAspectPackages =
     function listDeployedAspectPackages()
@@ -331,7 +391,7 @@ DeploymentService.listAspects =
     function listAspects(/* string */ _packageName)
     {
         var isAsync, request, response, resultValue;
-        
+
         this._options = new Array();
         isAsync = (this.listAspects.callback != null && typeof(this.listAspects.callback) == 'function');
         request = 
@@ -437,7 +497,9 @@ function WebService(endpointName)
                     "listProcesses" : "http://www.apache.org/ode/deployapi/DeploymentPortType/listProcessesRequest",
                     "deploy" : "http://www.apache.org/ode/deployapi/DeploymentPortType/deployRequest",
                     // AO4ODE:
+                    "undeployAspect" : "http://www.apache.org/ode/deployapi/DeploymentPortType/listAspects",
                     "listDeployedAspectPackages" : "http://www.apache.org/ode/deployapi/DeploymentPortType/listDeployedAspectPackagesRequest",
+                    "listAspects" : "http://www.apache.org/ode/deployapi/DeploymentPortType/listAspects"                    
                 }
             }
     };

@@ -122,6 +122,7 @@ public class AspectDeploymentUnitDir {
             is = new FileInputStream(f);
             AspectSerializer as = new AspectSerializer();
             OAspect oaspect = as.readOAspect(is);
+            // FIXME: Versioning
             QName aspectName = new QName(oaspect.targetNamespace, oaspect.aspectName);
             CBAInfo info = new CBAInfo(aspectName, f);
             return info;

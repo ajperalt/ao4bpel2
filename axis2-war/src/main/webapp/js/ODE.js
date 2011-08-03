@@ -1251,7 +1251,7 @@ org.apache.ode.DeploymentHandling = {};
             var ids = org.apache.ode.DOMHelper.getElementsByTagName('id',"http://www.apache.org/ode/deployapi","deployapi",response);
             if(ids.length != 0){
                 for(var i =0; i < ids.length; i++){
-                    processes[i] = org.apache.ode.DOMHelper.getText(ids[i]);
+                	aspects[i] = org.apache.ode.DOMHelper.getText(ids[i]);
                 }
                 return aspects;
             }else{
@@ -1374,15 +1374,16 @@ org.apache.ode.DeploymentHandling = {};
                         deployedPacks[i] +
                         '</div><div class="bd"><div class="fixed">'+
                         '<table><tr class="alt"><td>Aspects:</td></tr><tr><td>'
-            //var processes = getAspects(deployedPacks[i]);
-            // if(processes != 0){
-            //    for(var j = 0; j < processes.length; j++){
-            //        contentHtml += processes[j] + (j+1 < processes.length ? ', ' : '');
-            //    }
-            //}else{
+            var processes = getAspects(deployedPacks[i]);
+             if(processes != 0){
+                for(var j = 0; j < processes.length; j++){
+                    contentHtml += processes[j] + (j+1 < processes.length ? ', ' : '');
+                }
+            }else{
                 contentHtml += 'Error occurred during getting processes or no processes.';
-            // }
-            contentHtml += '</td></tr><tr class="alt"><td>Contents:</td></tr><tr><td>';
+            }
+            // TODO:
+            // contentHtml += '</td></tr><tr class="alt"><td>Contents:</td></tr><tr><td>';
             // var content  = getPackageContents(deployedPacks[i]);
             // if(content != null){
             //    for(var k =0; k < content.length; k++){
@@ -1391,26 +1392,26 @@ org.apache.ode.DeploymentHandling = {};
             //        contentHtml += strC.substr(index+1) + (k+1 < content.length ? ", " : "");
             //    }
             //}else{
-                contentHtml += 'Error occurred during getting package Content or no content.'
+            //    contentHtml += 'Error occurred during getting package Content or no content.'
             //}
             contentHtml += '</td></tr></table></div></div><div class="ft">'+
                         '<span id="'+ packageundepId + '" class="yui-button yui-push-button">'+
                         '<span class="first-child"><input type="button" name="'+ packageundepVar +
                         'name" value="Undeploy"></span></span>'+
-                        '<span id="'+ packageDetailsId +
-                        '" class="yui-button yui-push-button"><span class="first-child">'+
-                        '<input type="button" name="'+ packageDetailsVar +'name" value="Details"></span></span>'+           
+                        // '<span id="'+ packageDetailsId +
+                        // '" class="yui-button yui-push-button"><span class="first-child">'+
+                        // '<input type="button" name="'+ packageDetailsVar +'name" value="Details"></span></span>'+           
                         '<script type="text/javascript">'+
                         'function '+ packageundepVar + 
-                        'undeployPackage(){org.apache.ode.DeploymentHandling.undeployPackage("'+ 
+                        'undeployAspectPackage(){org.apache.ode.DeploymentHandling.undeployAspectPackage("'+ 
                         deployedPacks[i] +'");}' +
-                        'function '+ packageDetailsVar + 
-                        'viewDetails(){org.apache.ode.DeploymentHandling.viewPackDetails("'+ 
-                        deployedPacks[i] +'"'+ ');}' +
+                        // 'function '+ packageDetailsVar + 
+                        // 'viewDetails(){org.apache.ode.DeploymentHandling.viewPackDetails("'+ 
+                        // deployedPacks[i] +'"'+ ');}' +
                         'var ' + packageundepVar + '=new YAHOO.widget.Button("'+ packageundepId + '");'+
-                        packageundepVar + '.addListener("click", ' + packageundepVar + 'undeployPackage); '+
-                        'var ' + packageDetailsVar + '=new YAHOO.widget.Button("'+ packageDetailsId + '");' +
-                        packageDetailsVar +'.addListener("click", ' + packageDetailsVar + 'viewDetails); '  +
+                        packageundepVar + '.addListener("click", ' + packageundepVar + 'undeployAspectPackage); '+
+                        // 'var ' + packageDetailsVar + '=new YAHOO.widget.Button("'+ packageDetailsId + '");' +
+                        // packageDetailsVar +'.addListener("click", ' + packageDetailsVar + 'viewDetails); '  +
                         '</script>'+
                         '</div> <div class="actions"><a href="#" class="accordionToggleItem">&nbsp;</a>'+
                         '</div></div>'
@@ -1534,6 +1535,47 @@ org.apache.ode.DeploymentHandling = {};
         }
     }
     
+    // AO4ODE
+    function undeployAspectPackage(packageName){
+        try{
+            function handleYes(){
+                var response;
+                try{
+                    response = DeploymentService.undeployAspect(packageName);
+                } catch (e) {
+                    if (typeof(e) == "string") {
+                        org.apache.ode.Widgets.alert("Exception occured:\n" + e.toString());
+                    }
+                    else {
+                        org.apache.ode.Widgets.alert("Exception occurred!");
+                    }
+                }
+                if(response == true){
+                    org.apache.ode.Widgets.alert('Aspect Package '+ packageName + 'undeployed successfully.');
+                    org.apache.ode.DeploymentHandling.populateDeployedPacks();
+                }else{
+                    org.apache.ode.Widgets.alert('Error occurred during undeployment or undeplyment unsuccessful.');
+                }
+            }
+
+            function handleNo(){
+                org.apache.ode.Widgets.alert('Aspect Package undeployment cancelled!');
+            }
+
+            var msg = 'Dou you want to undeploy aspect package ' + packageName + '?';
+
+            org.apache.ode.Widgets.operationConfirm(msg,handleYes, handleNo);
+
+        }catch(e){
+            if(typeof e == 'string'){
+                org.apache.ode.Widgets.alert("Exception occurred while undeploying the aspect package: " + e.toString());
+            }else{
+                org.apache.ode.Widgets.alert("Exception occurred while undeploying the aspect package.");
+            }
+        }
+    }
+    
+    
     var ns = org.apache.ode.DeploymentHandling;
     ns.getDeployedPackages = getDeployedPackages;
     ns.undeployPackage = undeployPackage;
@@ -1541,5 +1583,7 @@ org.apache.ode.DeploymentHandling = {};
     ns.populateDeployedPacks = populateDeployedPackages;
     // AO4ODE
     ns.populateDeployedAspectPacks = populateDeployedAspectPackages;
+    ns.getDeployedAspectPackages = getDeployedAspectPackages;
+    ns.undeployAspectPackage = undeployAspectPackage;
 })();
 

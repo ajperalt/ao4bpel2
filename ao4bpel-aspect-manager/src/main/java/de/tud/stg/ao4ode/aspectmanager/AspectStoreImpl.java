@@ -91,8 +91,9 @@ public class AspectStoreImpl implements AspectStore {
 
 	// FIXME: return a version number
 	public long getCurrentVersion() {
-		UUID uuid = UUID.randomUUID();
-		return uuid.getMostSignificantBits();
+		// UUID uuid = UUID.randomUUID();
+		// return uuid.getMostSignificantBits();
+		return 0;
     }
 	
 	public Collection<QName> undeployAspect(final File dir) {
@@ -101,6 +102,8 @@ public class AspectStoreImpl implements AspectStore {
 	
 	public Collection<QName> undeploy(final String duName) {
         
+		__log.debug("AspectStore before undeployment: " + _aspects);
+		
         Collection<QName> undeployed = Collections.emptyList();
         AspectDeploymentUnitDir du;
         // _rw.writeLock().lock();
@@ -115,11 +118,14 @@ public class AspectStoreImpl implements AspectStore {
                 __log.info("Aspect " + pn.toString() + " has been undeployed!");
             }
             
+            __log.debug("Undeployed: " + undeployed);
+            
             _aspects.keySet().removeAll(undeployed);
         } finally {
             // _rw.writeLock().unlock();
         }
 
+        __log.debug("AspectStore after undeployment: " + _aspects);
         return undeployed;
     }
 	
@@ -132,7 +138,8 @@ public class AspectStoreImpl implements AspectStore {
     }
 
     private QName toAid(QName aspectType, long version) {
-        return new QName(aspectType.getNamespaceURI(), aspectType.getLocalPart() + "-" + version);
+        // return new QName(aspectType.getNamespaceURI(), aspectType.getLocalPart() + "-" + version);
+    	return new QName(aspectType.getNamespaceURI(), aspectType.getLocalPart());
     }
 	
 
