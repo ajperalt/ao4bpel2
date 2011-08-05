@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.xml.namespace.QName;
+
 public class OAspect implements Serializable {
 	
 	private static final long serialVersionUID = 5258360738412039062L;
@@ -18,6 +20,10 @@ public class OAspect implements Serializable {
 	
 	private OAdvice advice;
 		
+	public QName getQName() {
+        return new QName(targetNamespace, aspectName);
+    }
+	
 	public void addPointcut(OPointcut pointcut) {
 		this.pointcuts.add(pointcut);
 	}
@@ -40,6 +46,7 @@ public class OAspect implements Serializable {
 
 	public void setAdvice(OAdvice advice) {
 		this.advice = advice;
+		advice.setAspect(this);
 	}
 
 	public String toString() {

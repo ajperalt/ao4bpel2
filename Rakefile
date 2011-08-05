@@ -216,7 +216,8 @@ define "ode" do
 
   desc "BPEL Aspect Manager"
   define "ao4bpel-aspect-manager" do
-    compile.with projects("ao4bpel-compiler", "ao4bpel-facts-manager", "bpel-compiler", "bpel-obj", "bpel-api", "utils", "bpel-epr", "bpel-store"), project("jacob"), COMMONS.logging, WSDL4J, _('lib/tuprolog.jar'), _('lib/2p.jar')
+    compile.with projects("ao4bpel-compiler", "ao4bpel-facts-manager", "bpel-compiler", "bpel-obj", "bpel-api", "utils", "bpel-epr", "bpel-store", "bpel-schemas"), project("jacob"),
+	COMMONS.logging, WSDL4J, JAVAX.stream, XMLBEANS, _('lib/tuprolog.jar'), _('lib/2p.jar')
     package :jar
   end
   # /AO4ODE

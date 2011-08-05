@@ -57,6 +57,8 @@ public interface AspectStore {
     
     long getCurrentVersion();
 
-	Collection<AspectInfo> getAspects();
+	Collection<AspectConfImpl> getAspects();
+	
+	AspectConfImpl getAspectConfiguration(QName aspectId);
 
 }

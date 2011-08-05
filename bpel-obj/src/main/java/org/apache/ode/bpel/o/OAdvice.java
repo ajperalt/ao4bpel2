@@ -8,6 +8,7 @@ public class OAdvice extends OProcess {
 	
 	public static enum TYPE {UNKOWN, BEFORE, AFTER, AROUND}
 	private TYPE type = TYPE.UNKOWN;
+	private OAspect oaspect;
 	
 	public OAdvice(String bpelVersion) {
 		super(bpelVersion);
@@ -23,6 +24,14 @@ public class OAdvice extends OProcess {
 	
 	public String toString() {
 		return "AO4BPEL ADVICE [" + getType() + ", " + this.getName() + ", " + this.getId() + "]";
+	}
+	
+	public OAspect getOAspect() {
+		return oaspect;
+	}
+
+	public void setAspect(OAspect oaspect) {
+		this.oaspect = oaspect;
 	}
 
 }

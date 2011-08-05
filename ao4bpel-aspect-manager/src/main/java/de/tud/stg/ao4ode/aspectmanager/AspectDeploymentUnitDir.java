@@ -12,7 +12,6 @@ import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -20,11 +19,17 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.ode.bpel.dd.DeployAspectDocument;
+import org.apache.ode.bpel.dd.TDeployment;
+import org.apache.ode.bpel.dd.TDeployment.Process;
 import org.apache.ode.bpel.iapi.ContextException;
 import org.apache.ode.bpel.o.OAspect;
+import org.apache.ode.store.DeploymentUnitDir;
+import org.apache.ode.store.DeploymentUnitDir.CBPInfo;
 import org.apache.ode.utils.InternPool;
 import org.apache.ode.utils.InternPool.InternableBlock;
 import org.apache.ode.utils.fs.FileUtils;
+import org.apache.xmlbeans.XmlOptions;
 
 import de.tud.stg.ao4ode.compiler.AO4BPEL2AspectCompiler;
 
@@ -32,6 +37,7 @@ public class AspectDeploymentUnitDir {
 	
 	private static Log log = LogFactory.getLog(AspectDeploymentUnitDir.class);
 	private File _duDirectory;
+	private volatile DeployAspectDocument _dd;
 		
 	private static final FileFilter _aspectFilter = new FileFilter() {
         public boolean accept(File path) {
@@ -103,7 +109,7 @@ public class AspectDeploymentUnitDir {
     
     protected void scan() {
 
-        HashMap<QName, CBAInfo> aspects = new HashMap<QName, CBAInfo>();
+    	HashMap<QName, CBAInfo> aspects = new HashMap<QName, CBAInfo>();
         List<File> cbas = FileUtils.directoryEntriesInPath(_duDirectory, AspectDeploymentUnitDir._cbaFilter);
         for (File file : cbas) {
             CBAInfo cbainfo = loadCBAInfo(file);
@@ -123,7 +129,9 @@ public class AspectDeploymentUnitDir {
             AspectSerializer as = new AspectSerializer();
             OAspect oaspect = as.readOAspect(is);
             // FIXME: Versioning
+            log.debug("LoadCBAINFO: namespace: " + oaspect.targetNamespace + ", oaspect.aspectNAme: " + oaspect.aspectName);
             QName aspectName = new QName(oaspect.targetNamespace, oaspect.aspectName);
+            log.debug("QName: " + aspectName);
             CBAInfo info = new CBAInfo(aspectName, f);
             return info;
         } catch (Exception e) {
@@ -149,6 +157,8 @@ public class AspectDeploymentUnitDir {
 	}
 	
 	CBAInfo getCBAInfo(QName aspectName) {
+		log.debug("Looking for CBAInfo: " + aspectName);
+		log.debug("_aspects: " + _aspects);
         return _aspects.get(aspectName);
     }
 
@@ -187,4 +197,29 @@ public class AspectDeploymentUnitDir {
 	public long getVersion() {
         return 0;
     }
+	
+	public DeployAspectDocument getDeploymentDescriptor() {
+        if (_dd == null) {
+            File ddLocation = new File(_duDirectory, "deploy.xml");
+            try {
+                XmlOptions options = new XmlOptions();
+                HashMap otherNs = new HashMap();
+
+                otherNs.put("http://ode.fivesight.com/schemas/2006/06/27/dd",
+                        "http://www.apache.org/ode/schemas/dd/2007/03");
+                options.setLoadSubstituteNamespaces(otherNs);
+                _dd = DeployAspectDocument.Factory.parse(ddLocation, options);
+            } catch (Exception e) {
+                throw new ContextException("Couldn't read deployment descriptor at location "
+                        + ddLocation.getAbsolutePath(), e);
+            }
+
+        }
+        return _dd;
+    }
+	
+	public File getDeployDir() {
+		return _duDirectory;
+	}
+    
 }

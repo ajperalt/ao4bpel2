@@ -16,6 +16,10 @@ public class Aspect extends AspectObject {
 		return getAttribute("name");
 	}
 	
+    public String getTargetNamespace() {
+        return getAttribute("targetNamespace", null);
+    }
+	
 	public Advice getAdvice() {
 		return getFirstChild(Advice.class);
 	}

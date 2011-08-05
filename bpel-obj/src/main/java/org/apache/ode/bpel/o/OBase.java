@@ -38,11 +38,17 @@ public class OBase implements Serializable {
     public DebugInfo debugInfo;
 
     protected OBase(OProcess owner) {
-        _owner = owner;
+        _owner = owner;        
         if (owner == null) {
             _id = 0;
         } else {
-            _id = ++_owner._childIdCounter;
+        	// AO4ODE: ID needs to be unique, even among aspects!
+       		if(_owner instanceof OAdvice) {       			
+       			_id = Integer.MAX_VALUE - ++_owner._childIdCounter;
+        	}
+        	else {        		
+        		_id = ++_owner._childIdCounter;
+        	}
             _owner._children.add(this);
         }
         assert _id == 0 || _owner != null;
@@ -68,7 +74,8 @@ public class OBase implements Serializable {
     }
 
     public int getId() {
-        return _id;
+   		return _id;
+
     }
 
     public String toString() {

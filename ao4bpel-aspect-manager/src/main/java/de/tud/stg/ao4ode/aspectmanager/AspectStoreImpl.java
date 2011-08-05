@@ -16,6 +16,9 @@ import javax.xml.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.compiler.api.CompilationException;
+import org.apache.ode.bpel.dd.DeployAspectDocument;
+import org.apache.ode.bpel.dd.TDeployment;
+import org.apache.ode.bpel.dd.TDeploymentAspect;
 import org.apache.ode.bpel.iapi.ContextException;
 import org.apache.ode.bpel.iapi.EndpointReferenceContext;
 import org.apache.ode.bpel.iapi.ProcessStoreEvent;
@@ -26,7 +29,11 @@ import org.apache.ode.store.ConfStoreConnection;
 import org.apache.ode.store.DeploymentUnitDAO;
 import org.apache.ode.store.DeploymentUnitDir;
 import org.apache.ode.store.Messages;
+import org.apache.ode.store.ProcessConfImpl;
+import org.apache.ode.store.DeploymentUnitDir.CBPInfo;
 import org.apache.ode.utils.msg.MessageBundle;
+
+import de.tud.stg.ao4ode.aspectmanager.AspectDeploymentUnitDir.CBAInfo;
 
 public class AspectStoreImpl implements AspectStore {
 	
@@ -34,7 +41,7 @@ public class AspectStoreImpl implements AspectStore {
 
 	private static final Messages __msgs = MessageBundle.getMessages(Messages.class);
 
-    private Map<QName, AspectInfo> _aspects = new HashMap<QName, AspectInfo>();
+    private Map<QName, AspectConfImpl> _aspects = new HashMap<QName, AspectConfImpl>();
 
     private Map<String, AspectDeploymentUnitDir> _deploymentUnits = new HashMap<String, AspectDeploymentUnitDir>();
 
@@ -54,11 +61,15 @@ public class AspectStoreImpl implements AspectStore {
     }
 	
 	public Collection<QName> deployAspect(File deploymentUnitDirectory, String scope) {
+		
+		__log.debug("Deploying Aspect package: " + deploymentUnitDirectory.getName());
+		
 		final Date deployDate = new Date();
 		final AspectDeploymentUnitDir du = new AspectDeploymentUnitDir(deploymentUnitDirectory);
 
 		// Compile all aspects
 		try {
+			__log.debug("Compiling deployment unit");
             du.compile(scope);
         } catch (CompilationException ce) {
             String errmsg = __msgs.msgDeployFailCompileErrors(ce);
@@ -67,9 +78,13 @@ public class AspectStoreImpl implements AspectStore {
         }
         
         // Add compiled aspects to aspect manager
+        __log.debug("Scanning for compiled deployment units");
         du.scan();
-        
+       
+
+        /* WORKING, but no DD */
         // Add compiled DU to store
+        /*
         _deploymentUnits.put(du.getName(), du);
         
         // TODO: Foreach aspect defined in DD...
@@ -79,13 +94,66 @@ public class AspectStoreImpl implements AspectStore {
         	AspectInfo aspect = new AspectInfo(oaspect, deployDate);
         	_aspects.put(aspectId, aspect);
         }
+        */
         
+        /* NEW: USE DD FOR ASPECTS */
+        
+        final DeployAspectDocument dd = du.getDeploymentDescriptor();
+        final ArrayList<AspectConfImpl> aspects = new ArrayList<AspectConfImpl>();
+        Collection<QName> deployed;
+
+        // _rw.writeLock().lock();
+
+        try {
+            if (_deploymentUnits.containsKey(du.getName())) {
+                String errmsg = __msgs.msgDeployFailDuplicateDU(du.getName());
+                __log.error(errmsg);
+                throw new ContextException(errmsg);
+            }
+
+            // retirePreviousPackageVersions(du);
+            __log.debug("Deploying aspects defined in DD: " + dd.getDeployAspect().getAspectList());
+            
+            for (TDeploymentAspect.Aspect aspectDD : dd.getDeployAspect().getAspectList()) {
+                QName aid = toAid(aspectDD.getName(), 0);
+
+                if (_aspects.containsKey(aid)) {
+                    String errmsg = __msgs.msgDeployFailDuplicatePID(aspectDD.getName(), du.getName());
+                    __log.error(errmsg);
+                    throw new ContextException(errmsg);
+                }
+
+                CBAInfo cbpInfo = du.getCBAInfo(aspectDD.getName());
+                if (cbpInfo == null) {
+                    String errmsg = __msgs.msgDeployFailedProcessNotFound(aspectDD.getName(), du.getName());
+                    __log.error(errmsg);
+                    throw new ContextException(errmsg);
+                }
+
+                OAspect oaspect = du.getAspect(aid);
+                AspectConfImpl aconf = new AspectConfImpl(aid, aspectDD.getName(), 0, du, aspectDD, deployDate,
+                        eprContext,
+                        _configDir,
+                        oaspect);
+                aspects.add(aconf);
+            }
+
+            _deploymentUnits.put(du.getName(), du);
+
+            for (AspectConfImpl aspect : aspects) {
+                __log.info("Aspect deployed successfully: " + du.getDeployDir() + "," +  aspect.getAspectId());
+                _aspects.put(aspect.getAspectId(), aspect);
+
+            }        
+		} finally {
+			// rw.writeLock().unlock();
+    	}
         return _aspects.keySet();
  
         
 	}
 	
-	public Collection<AspectInfo> getAspects() {
+	public Collection<AspectConfImpl> getAspects() {
 		return _aspects.values();
 	}
 
@@ -155,7 +223,6 @@ public class AspectStoreImpl implements AspectStore {
 	}
 
 	public List<QName> getAspectList() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -174,5 +241,9 @@ public class AspectStoreImpl implements AspectStore {
         for (AspectStoreListener psl : _listeners)
             psl.onAspectStoreEvent(ase);
     }
+
+	public AspectConfImpl getAspectConfiguration(QName aspectId) {
+		return _aspects.get(aspectId);
+	}
 
 }

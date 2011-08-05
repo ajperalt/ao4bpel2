@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Stripped down deployment descriptor for aspects, based on dd.xsd
+  -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:ext="http://ode.apache.org/activityRecovery"
+           targetNamespace="http://www.apache.org/ode/schemas/dd/2007/03"
+           xmlns:dd="http://www.apache.org/ode/schemas/dd/2007/03"
+           elementFormDefault="qualified">
+
+    <xs:element name="deployAspect" id="deployAspect" type="dd:tDeploymentAspect">
+    </xs:element>
+
+    <xs:complexType name="tDeploymentAspect">
+        <xs:sequence>
+
+            <xs:element name="aspect"  minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+
+                        <xs:element name="scope" minOccurs="0" maxOccurs="1" type="xs:string">
+                            <xs:annotation>
+                                <xs:documentation>Scope for this aspect</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                        <xs:element name="invoke"  minOccurs="0" maxOccurs="unbounded" type="dd:tInvoke"/>
+
+                    </xs:sequence>
+
+                    <xs:attribute name="name" type="xs:QName" use="required"/>
+                    <xs:attribute name="fileName" type="xs:string" use="optional"/>
+
+                </xs:complexType>
+            </xs:element>
+
+        </xs:sequence>
+    </xs:complexType>
+<!--
+    <xs:complexType name="tInvokeAspect">
+        <xs:sequence>
+            <xs:element name="service" minOccurs="1" maxOccurs="1" type="dd:tService"/>
+            <xs:element name="binding" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="name" type="xs:QName" use="required"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element ref="ext:failureHandling" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="partnerLink" type="xs:string" use="required"/>
+        <xs:attribute name="usePeer2Peer" type="xs:boolean" use="optional" default="true"/>
+    </xs:complexType>
+
+    <xs:complexType name="tServiceAspect">
+        <xs:sequence>
+            <xs:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:QName" use="required"/>
+        <xs:attribute name="port" type="xs:NCName" use="required"/>
+    </xs:complexType>
+  -->    
+</xs:schema>

@@ -141,7 +141,8 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
 
     protected IMAManager _imaManager;
 
-    protected BpelProcess _bpelProcess;
+    // AO4ODE: FIXME: Testing
+    public BpelProcess _bpelProcess;
 
     private Date _currentEventDateTime;
 
@@ -773,7 +774,11 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
         Element partnerEPR = plinkDAO.getPartnerEPR();
         EndpointReference partnerEpr;
 
+        __log.error("partnerEPR: " + partnerEPR);
         if (partnerEPR == null) {
+        	// AO4ODE: Debugging, remove!
+        	__log.error("partnerLink.partnerLink: " + partnerLink.partnerLink);
+        	
             partnerEpr = _bpelProcess.getInitialPartnerRoleEPR(partnerLink.partnerLink);
             // In this case, the partner link has not been initialized.
             if (partnerEpr == null)

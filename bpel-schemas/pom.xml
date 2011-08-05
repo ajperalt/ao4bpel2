@@ -54,6 +54,8 @@
                        <xmlConfig implementation="java.io.File">src/main/xsd/dd.xsdconfig</xmlConfig>
                        <xmlConfig implementation="java.io.File">src/main/xsd/pmapi.xsdconfig</xmlConfig>
                        <xmlConfig implementation="java.io.File">src/main/xsd/schedules.xsdconfig</xmlConfig>
+                       <!--  AO4ODE: Aspect Deployment Descriptor Schema -->
+                       <xmlConfig implementation="java.io.File">src/main/xsd/aspect_dd.xsdconfig</xmlConfig>
                    </xmlConfigs>
 		   <javaSource>1.5</javaSource>
 		</configuration>

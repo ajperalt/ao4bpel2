@@ -28,7 +28,9 @@ import org.apache.ode.bpel.compiler.bom.Bpel11QNames;
 import org.apache.ode.bpel.compiler.bom.Bpel20QNames;
 import org.apache.ode.bpel.compiler.bom.BpelObjectFactory;
 import org.apache.ode.bpel.compiler.bom.DOMBuilderContentHandler;
+import org.apache.ode.bpel.engine.BpelProcess;
 import org.apache.ode.bpel.engine.BpelRuntimeContextImpl;
+import org.apache.ode.bpel.engine.PartnerLinkMyRoleImpl;
 import org.apache.ode.bpel.evt.ActivityEnabledEvent;
 import org.apache.ode.bpel.evt.ActivityExecEndEvent;
 import org.apache.ode.bpel.evt.ActivityExecStartEvent;
@@ -36,12 +38,14 @@ import org.apache.ode.bpel.evt.ActivityFailureEvent;
 import org.apache.ode.bpel.evt.ActivityRecoveryEvent;
 import org.apache.ode.bpel.evt.InvokeExecStartEvent;
 import org.apache.ode.bpel.explang.EvaluationException;
+import org.apache.ode.bpel.iapi.Endpoint;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.bpel.o.OExpression;
 import org.apache.ode.bpel.o.OInvoke;
 import org.apache.ode.bpel.o.OLink;
+import org.apache.ode.bpel.o.OPartnerLink;
 import org.apache.ode.bpel.o.OProcess;
 import org.apache.ode.bpel.o.OScope;
 import org.apache.ode.bpel.o.OFailureHandling;
@@ -134,6 +138,14 @@ public class ACTIVITYGUARD extends ACTIVITY {
             	
             	// FIXME: No pointcut matching during advice execution?            	
                 if(!(_self.o.getOwner() instanceof OAdvice) && oAdvice != null) {
+                	
+                	// AO4ODE: TODO: Add PartnerLink of Advice to Process
+                	BpelRuntimeContextImpl rt = (BpelRuntimeContextImpl)getBpelRuntimeContext();
+                	BpelProcess bpelProcess = rt._bpelProcess;                	
+                	Map<String, Endpoint> invokeEndpoints = am.getAspectConfiguration(oAdvice.getOAspect().getQName()).getInvokeEndpoints();
+                	if(invokeEndpoints.size() > 0) {
+                		bpelProcess.addAdvice(oAdvice, invokeEndpoints);                		
+                	}               	
                 	
                     // RUN ADVICE
                 	ADVICE advice = new ADVICE(this, oAdvice, activity);

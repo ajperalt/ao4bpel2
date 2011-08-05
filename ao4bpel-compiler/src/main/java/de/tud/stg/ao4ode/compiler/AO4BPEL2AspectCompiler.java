@@ -100,6 +100,12 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 		
 		oaspect.aspectName = aspect.getName();
 		
+		if (aspect.getTargetNamespace() == null) {
+            oaspect.targetNamespace = "--UNSPECIFIED--";
+        } else {
+            oaspect.targetNamespace = aspect.getTargetNamespace();
+        }
+		
 		// TODO: Versioning of aspects?
 		OAdvice oadvice = compile(aspect.getAdvice(), rf);
 		

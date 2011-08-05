@@ -2,6 +2,8 @@ package de.tud.stg.ao4ode.aspectmanager;
 import java.io.File;
 import java.util.Collection;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.o.OActivity;
@@ -66,12 +68,12 @@ public class AspectManager {
 		if(xpath != null) {
 
 			// Return (composite) advice for current join point
-			Collection<AspectInfo> aspects = aspectStore.getAspects();
+			Collection<AspectConfImpl> aspects = aspectStore.getAspects();
 			
-			// log.debug("AspectStore before PC check: ");
-			// log.debug(aspects);
+			log.debug("AspectStore before PC check: ");
+			log.debug(aspects);
 			
-			for(AspectInfo aspect : aspects) {
+			for(AspectConfImpl aspect : aspects) {
 				// TODO: Build composite advice, for now, use the first match
 				for(OPointcut pointcut : aspect.getOAspect().getPointcuts()) {					
 					if(fm.solve(pointcut.getName(),
@@ -83,6 +85,9 @@ public class AspectManager {
 						return aspect.getOAspect().getOAdvice();
 						
 					}
+					else {
+						log.debug("NO POINTCUT MATCH FOR POINTCUT: " + pointcut);
+					}
 				}
 			}			
 			
@@ -90,6 +95,10 @@ public class AspectManager {
 
 		return null;
 		
+	}
+	
+	public AspectConfImpl getAspectConfiguration(QName aid) {
+		return aspectStore.getAspectConfiguration(aid);
 	}
 	
 	// TODO: Remove?

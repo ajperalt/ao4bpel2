@@ -91,7 +91,13 @@ public class BpelProcess {
 
     private static final Messages __msgs = MessageBundle.getMessages(Messages.class);
 
-    private volatile Map<OPartnerLink, PartnerLinkPartnerRoleImpl> _partnerRoles;
+    // AO4ODE: FIXME: Testing
+    public volatile Map<OPartnerLink, PartnerLinkPartnerRoleImpl> _partnerRoles;
+    
+    // AO4ODE: Rember aspect partners after hydration 
+    // public volatile Map<OPartnerLink, PartnerLinkPartnerRoleImpl> _aspectPartnerRoles;
+    // private Set<OProcess> _advices;
+    private Map<OProcess, Map<String, Endpoint>> _adviceInvokeEndpoints = new HashMap<OProcess, Map<String, Endpoint>>();
 
     private volatile Map<OPartnerLink, PartnerLinkMyRoleImpl> _myRoles;
 
@@ -476,10 +482,32 @@ public class BpelProcess {
         _partnerRoles = new HashMap<OPartnerLink, PartnerLinkPartnerRoleImpl>();
         _myRoles = new HashMap<OPartnerLink, PartnerLinkMyRoleImpl>();
         _endpointToMyRoleMap = new HashMap<PartnerLinkMyRoleImpl, Endpoint>();
-
-        // Create myRole endpoint name mapping (from deployment descriptor)
+        
+        // AO4ODE: moved to extra method
+        addRoles(oprocess, _pconf.getProvideEndpoints(), _pconf.getInvokeEndpoints());
+        
+        addAdviceRoles();        
+        
+    }
+    
+    private void addAdviceRoles() {
+    	__log.debug("Adding partnerlinks from advice: " + _adviceInvokeEndpoints.keySet());
+        // AO4ODE: add partnerlinks from aspects
+        for(OProcess advice : _adviceInvokeEndpoints.keySet()) {
+        	Map<String,Endpoint> endpoints = _adviceInvokeEndpoints.get(advice);
+        	addRoles(advice,
+        			new HashMap<String,Endpoint>(),
+        			endpoints);
+        }
+    }
+    
+    private void addRoles(OProcess oprocess,
+    		Map<String,Endpoint> provideEndpoints,
+    		Map<String,Endpoint> invokeEndpoints) {
+    	    	
+    	// Create myRole endpoint name mapping (from deployment descriptor)
         HashMap<OPartnerLink, Endpoint> myRoleEndpoints = new HashMap<OPartnerLink, Endpoint>();
-        for (Map.Entry<String, Endpoint> provide : _pconf.getProvideEndpoints().entrySet()) {
+        for (Map.Entry<String, Endpoint> provide : provideEndpoints.entrySet()) {
             OPartnerLink plink = oprocess.getPartnerLink(provide.getKey());
             if (plink == null) {
                 String errmsg = "Error in deployment descriptor for process " + _pid + "; reference to unknown partner link "
@@ -491,7 +519,7 @@ public class BpelProcess {
         }
 
         // Create partnerRole initial value mapping
-        for (Map.Entry<String, Endpoint> invoke : _pconf.getInvokeEndpoints().entrySet()) {
+        for (Map.Entry<String, Endpoint> invoke : invokeEndpoints.entrySet()) {
             OPartnerLink plink = oprocess.getPartnerLink(invoke.getKey());
             if (plink == null) {
                 String errmsg = "Error in deployment descriptor for process " + _pid + "; reference to unknown partner link "
@@ -514,7 +542,7 @@ public class BpelProcess {
             }
 
             if (pl.hasPartnerRole()) {
-                Endpoint endpoint = _pconf.getInvokeEndpoints().get(pl.getName());
+                Endpoint endpoint = invokeEndpoints.get(pl.getName());
                 if (endpoint == null && pl.initializePartnerRole)
                     throw new IllegalArgumentException(pl.getName() + " must be bound to an endpoint in deploy.xml");
                 PartnerLinkPartnerRoleImpl partnerRole = new PartnerLinkPartnerRoleImpl(this, pl, endpoint);
@@ -623,7 +651,7 @@ public class BpelProcess {
         return _pconf.isSharedService(endpoint.serviceName);
     }
 
-    protected EndpointReference getInitialPartnerRoleEPR(OPartnerLink link) {
+    protected EndpointReference getInitialPartnerRoleEPR(OPartnerLink link) {    	
         try {
             _hydrationLatch.latch(1);
             PartnerLinkPartnerRoleImpl prole = _partnerRoles.get(link);
@@ -841,6 +869,9 @@ public class BpelProcess {
         }
 
         private void doHydrate() {
+        	// AO4ODE: REMOVE
+        	__log.error("BpelProcess, HydrationLatch.doHydrate");
+        	
             markused();
             __log.debug("Rehydrating process " + _pconf.getProcessId());
             try {
@@ -882,39 +913,11 @@ public class BpelProcess {
             registerExprLang(_oprocess);
 
             setRoles(_oprocess);
+                        
             initExternalVariables();
 
-            if (!_hydratedOnce) {
-                for (PartnerLinkPartnerRoleImpl prole : _partnerRoles.values()) {
-                    // Null for initializePartnerRole = false
-                    if (prole._initialPartner != null) {
-                        PartnerRoleChannel channel = _engine._contexts.bindingContext.createPartnerRoleChannel(_pid,
-                                prole._plinkDef.partnerRolePortType, prole._initialPartner);
-                        prole._channel = channel;
-                        _partnerChannels.put(prole._initialPartner, prole._channel);
-                        EndpointReference epr = channel.getInitialEndpointReference();
-                        if (epr != null) {
-                            prole._initialEPR = epr;
-                            _partnerEprs.put(prole._initialPartner, epr);
-                        }
-                        __log.debug("Activated " + _pid + " partnerrole " + prole.getPartnerLinkName() + ": EPR is "
-                                + prole._initialEPR);
-                    }
-                }
-                _engine.setProcessSize(_pid, true);
-                _hydratedOnce = true;
-            }
-
-            for (PartnerLinkMyRoleImpl myrole : _myRoles.values()) {
-                myrole._initialEPR = _myEprs.get(myrole._endpoint);
-            }
-
-            for (PartnerLinkPartnerRoleImpl prole : _partnerRoles.values()) {
-                prole._channel = _partnerChannels.get(prole._initialPartner);
-                if (_partnerEprs.get(prole._initialPartner) != null) {
-                    prole._initialEPR = _partnerEprs.get(prole._initialPartner);
-                }
-            }
+            // AO4ODE: moved to extra method
+            initPartnerRoles();
 
             /*
              * If necessary, create an object in the data store to represent the process. We'll re-use an existing object if it already
@@ -942,7 +945,48 @@ public class BpelProcess {
                 }
             }
         }
+        
     }
+    
+    private void initPartnerRoles() {
+    	initPartnerRoles(false);
+    }
+    
+    // AO4ODE: We need to re-init partner roles before advice execution!
+	private void initPartnerRoles(boolean forceInit) {
+		if (!_hydratedOnce || forceInit) {
+            for (PartnerLinkPartnerRoleImpl prole : _partnerRoles.values()) {
+                // Null for initializePartnerRole = false
+                if (prole._initialPartner != null) {
+                    PartnerRoleChannel channel = _engine._contexts.bindingContext.createPartnerRoleChannel(_pid,
+                            prole._plinkDef.partnerRolePortType, prole._initialPartner);
+                    prole._channel = channel;
+                    _partnerChannels.put(prole._initialPartner, prole._channel);
+                    EndpointReference epr = channel.getInitialEndpointReference();
+                    if (epr != null) {
+                        prole._initialEPR = epr;
+                        _partnerEprs.put(prole._initialPartner, epr);
+                    }
+                    __log.debug("Activated " + _pid + " partnerrole " + prole.getPartnerLinkName() + ": EPR is "
+                            + prole._initialEPR);
+                }
+            }
+            _engine.setProcessSize(_pid, true);
+            _hydratedOnce = true;
+        }
+
+        for (PartnerLinkMyRoleImpl myrole : _myRoles.values()) {
+            myrole._initialEPR = _myEprs.get(myrole._endpoint);
+        }
+
+        for (PartnerLinkPartnerRoleImpl prole : _partnerRoles.values()) {
+            prole._channel = _partnerChannels.get(prole._initialPartner);
+            if (_partnerEprs.get(prole._initialPartner) != null) {
+                prole._initialEPR = _partnerEprs.get(prole._initialPartner);
+            }
+        }
+		
+	}
     
     private void bounceProcessDAOInMemory(BpelDAOConnection conn, final QName pid, final long version, final OProcess oprocess) {
         if(__log.isInfoEnabled()) __log.info("Creating new process DAO[mem] for " + pid + " (guid=" + oprocess.guid + ").");
@@ -1137,4 +1181,16 @@ public class BpelProcess {
     public int getVersion() {
         return Integer.parseInt(_pid.getLocalPart().substring(_pid.getLocalPart().lastIndexOf('-') + 1));
     }
+
+    // AO4ODE: Add Partner Link for advice
+	public void addAdvice(OProcess oadvice, Map<String,Endpoint> invokeEndpoints) {
+		__log.debug("Adding advice " + oadvice + " to process" + this);		
+		_adviceInvokeEndpoints.put(oadvice, invokeEndpoints);
+		addAdviceRoles();
+		initPartnerRoles(true);
+		// Add Partner link as a child to OProcess. A little ugly, but saves a
+		// lot of modifications!
+		// AO4ODE: FIXME: Only PartnerLink elements!
+		_oprocess.getChildren().addAll(oadvice.getChildren());
+	}
 }
