@@ -14,5 +14,9 @@ public class Advice extends Process {
 	public List<Pointcut> getPointcuts() {
 		return this.getChildren(Pointcut.class);
 	}
+	
+	public String getAdviceType() {
+		return getAttribute("type",null);
+	}
 
 }

@@ -30,6 +30,10 @@ public class BpelFactsManager {
 	private BpelFactsManager() {
 		// TODO: Load rules from file
 		engine.addRule("activity(X):-event(ProcessID,_,_,_,_,X,_,'ActivityEnabledEvent',_),not(event(ProcessID,_,_,_,_,X,_,'ActivityExecStartEvent',_)).");
+		
+		engine.addRule("lastevent(X):-event(ProcessID,_,T1,_,_,X,_,'ActivityEnabledEvent',_),event(ProcessID,_,T2,_,_,Y,_,'ActivityEnabledEvent',_),Y=/=X,T1>T2.");
+		engine.addRule("lastactivity(X):-event(ProcessID,_,_,_,_,X,_,'ActivityEnabledEvent',_),lastevent(X).");
+		
 		engine.addRule("xpath(X):-event(ProcessID,_,_,_,X,_,_,'ActivityEnabledEvent',_),not(event(ProcessID,_,_,_,X,_,_,'ActivityExecStartEvent',_)).");
 	}
 		

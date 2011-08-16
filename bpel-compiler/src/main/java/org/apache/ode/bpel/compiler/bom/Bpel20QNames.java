@@ -187,6 +187,10 @@ public abstract class Bpel20QNames {
     public static final String NS_RDF = "http://www.w3.org/2000/01/rdf-schema#";
     public static final QName RDF_LABEL = new QName(NS_RDF, "label");
 
+    //
+    // AO4ODE: QNames
+    //
+    public static final QName PROCEED = newFinalQName("proceed");
 
     
     //

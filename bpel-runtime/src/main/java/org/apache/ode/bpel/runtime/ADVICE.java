@@ -15,19 +15,25 @@ import org.apache.ode.bpel.runtime.channels.TerminationChannel;
 import org.apache.ode.jacob.SynchChannel;
 import org.w3c.dom.Element;
 
+import de.tud.stg.ao4ode.runtime.AspectManager;
+
 public class ADVICE extends PROCESS {
 	
 	private static final Log __log = LogFactory.getLog(ADVICE.class);
 	
 	private ACTIVITYGUARD activityGuard;
-	private ActivityInfo joinPointActivity;
+	private ACTIVITY joinPointActivity;
 	private OAdvice oAdvice;
+	private ScopeFrame scopeFrame;
+	private LinkFrame linkFrame;	
 
-	public ADVICE(ACTIVITYGUARD activityguard, OAdvice oAdvice, ActivityInfo jointPointActivity) {		
+	public ADVICE(ACTIVITYGUARD activityguard, OAdvice oAdvice, ACTIVITY jointPointActivity, ScopeFrame _scopeFrame, LinkFrame _linkFrame) {		
 		super(oAdvice);
 		this.activityGuard = activityguard;
 		this.joinPointActivity = jointPointActivity;
 		this.oAdvice = oAdvice;
+		this.scopeFrame = scopeFrame;
+		this.linkFrame = linkFrame;
 	}
 
 	private static final long serialVersionUID = -3792083256538970881L;
@@ -35,7 +41,7 @@ public class ADVICE extends PROCESS {
 	@Override
 	public void run() {
 		
-		__log.debug("Running ADVICE: " + this.toString());
+		__log.debug("Running ADVICE: " + this.toString());		
 		
         BpelRuntimeContext ntive = getBpelRuntimeContext();
         Long scopeInstanceId = ntive.createScopeInstance(null, oAdvice.procesScope);
@@ -46,7 +52,8 @@ public class ADVICE extends PROCESS {
         evt.setScopeDeclarationId(oAdvice.procesScope.getId());
         ntive.sendEvent(evt);
         */
-                
+                        
+        
         ActivityInfo child = new ActivityInfo(genMonotonic(),
         		oAdvice.procesScope,
             newChannel(TerminationChannel.class),
@@ -62,6 +69,7 @@ public class ADVICE extends PROCESS {
         __log.debug("Creating instance of new Scope");
         __log.debug(scope.toString());
         
+        // RUN ADVICE
         instance(scope);
         
         object(new ParentScopeChannelListener(child.parent) {
@@ -83,31 +91,37 @@ public class ADVICE extends PROCESS {
                	 	__log.error("ADVICE FAILED: " + fault.getExplanation());
                 }
                 
-                proceed();
+                // If this advice is a before advice, proceed
+                /*
+                if(oAdvice.getType() == OAdvice.TYPE.BEFORE)
+                	proceed();
+                */
                 
             }
 
             public void cancelled() {
                 // this.completed(null, CompensationHandler.emptySet());
             	__log.debug("ADVICE cancelled");
-            	proceed();
+            	// proceed();
             }
 
             public void failure(String reason, Element data) {
                 // FaultData faultData = createFault(OFailureHandling.FAILURE_FAULT_NAME, oAdvice, reason);
                 // this.completed(faultData, CompensationHandler.emptySet());
             	__log.error("ADVICE FAILURE");
-            	proceed();
+            	// proceed();
             }
         });
     }
 	
-	private void proceed() {
+	/*
+	public void proceed() {
 		__log.debug("PROCEEDING!");
-		activityGuard.runActivity(joinPointActivity);
+		activityGuard.runActivity(joinPointActivity._self);
 	}
+	*/
 
-	public ActivityInfo getJoinPointActivity() {
+	public ACTIVITY getJoinPointActivity() {
 		return joinPointActivity;
 	}
 
@@ -118,7 +132,7 @@ public class ADVICE extends PROCESS {
 	@Override
 	public String toString() {
 		return "ADVICE: ["			
-			+ this.getJoinPointActivity().getO()
+			+ this.getJoinPointActivity()._self.getO()
 			+ this.getoAdvice()
 			+ "]";
 	}

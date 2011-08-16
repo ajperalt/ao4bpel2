@@ -1,6 +1,6 @@
 package org.apache.ode.bpel.o;
 
-import org.apache.ode.bpel.o.OAdvice.TYPE;
+import java.util.List;
 
 public class OAdvice extends OProcess {
 	
@@ -32,6 +32,15 @@ public class OAdvice extends OProcess {
 
 	public void setAspect(OAspect oaspect) {
 		this.oaspect = oaspect;
+	}
+
+	public OProceed getOProceed() {
+		List<OBase> children = this.getChildren();
+		for(OBase child : children) {
+			if(child instanceof OProceed)
+				return (OProceed)child;
+		}
+		return null;
 	}
 
 }

@@ -1184,7 +1184,7 @@ public class BpelProcess {
 
     // AO4ODE: Add Partner Link for advice
 	public void addAdvice(OProcess oadvice, Map<String,Endpoint> invokeEndpoints) {
-		__log.debug("Adding advice " + oadvice + " to process" + this);		
+		__log.error("Adding advice " + oadvice + " to process" + this);		
 		_adviceInvokeEndpoints.put(oadvice, invokeEndpoints);
 		addAdviceRoles();
 		initPartnerRoles(true);

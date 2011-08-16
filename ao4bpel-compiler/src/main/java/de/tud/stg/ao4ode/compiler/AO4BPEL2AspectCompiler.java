@@ -16,12 +16,16 @@ import org.apache.ode.bpel.compiler.DefaultResourceFinder;
 import org.apache.ode.bpel.compiler.ResourceFinder;
 import org.apache.ode.bpel.compiler.api.CompilationException;
 import org.apache.ode.bpel.compiler.api.CompilationMessage;
+import org.apache.ode.bpel.compiler.bom.Activity;
 import org.apache.ode.bpel.compiler.bom.Bpel11QNames;
 import org.apache.ode.bpel.compiler.bom.Bpel20QNames;
+import org.apache.ode.bpel.compiler.bom.BpelObject;
 import org.apache.ode.bpel.compiler.bom.Import;
 import org.apache.ode.bpel.compiler.bom.Property;
 import org.apache.ode.bpel.compiler.bom.PropertyAlias;
 import org.apache.ode.bpel.compiler.wsdl.Definition4BPEL;
+import org.apache.ode.bpel.o.DebugInfo;
+import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.bpel.o.OConstantVarType;
@@ -152,6 +156,7 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
         }
 
         _oprocess = new OAdvice(bpelVersionUri);
+        OAdvice oadvice = (OAdvice) _oprocess;
         _oprocess.guid = null;
         _oprocess.constants = makeConstants();
         _oprocess.debugInfo = createDebugInfo(advice, "process");
@@ -168,6 +173,16 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
             recoveredFromError(advice, new CompilationException(__cmsgs.errProcessNameNotSpecified()));
         } else {
             _oprocess.processName = _processDef.getName();
+        }
+        
+        String type = advice.getAdviceType();
+        if (type != null) {
+        	if(type.equals("before"))
+        		oadvice.setType(OAdvice.TYPE.BEFORE);
+        	else if(type.equals("after"))
+        		oadvice.setType(OAdvice.TYPE.AFTER);
+        	else if(type.equals("around"))
+        		oadvice.setType(OAdvice.TYPE.AROUND);
         }
                 
         _oprocess.compileDate = _generatedDate;

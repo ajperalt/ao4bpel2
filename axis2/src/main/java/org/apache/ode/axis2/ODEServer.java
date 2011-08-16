@@ -80,10 +80,10 @@ import org.apache.ode.store.ProcessStoreImpl;
 import org.apache.ode.utils.GUID;
 import org.apache.ode.utils.fs.TempFileManager;
 
-import de.tud.stg.ao4ode.aspectmanager.AspectManager;
 import de.tud.stg.ao4ode.aspectmanager.AspectStore;
 import de.tud.stg.ao4ode.aspectmanager.AspectStoreImpl;
 import de.tud.stg.ao4ode.aspectmanager.AspectStoreListenerImpl;
+import de.tud.stg.ao4ode.runtime.AspectManager;
 import de.tud.stg.ao4ode.runtime.DynamicFactsBpelEventListener;
 
 /**

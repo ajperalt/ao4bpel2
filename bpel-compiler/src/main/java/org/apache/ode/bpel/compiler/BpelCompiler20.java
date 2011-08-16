@@ -28,6 +28,7 @@ import org.apache.ode.bpel.compiler.bom.ForEachActivity;
 import org.apache.ode.bpel.compiler.bom.IfActivity;
 import org.apache.ode.bpel.compiler.bom.InvokeActivity;
 import org.apache.ode.bpel.compiler.bom.PickActivity;
+import org.apache.ode.bpel.compiler.bom.Proceed;
 import org.apache.ode.bpel.compiler.bom.ReceiveActivity;
 import org.apache.ode.bpel.compiler.bom.RepeatUntilActivity;
 import org.apache.ode.bpel.compiler.bom.ReplyActivity;
@@ -73,6 +74,9 @@ public class BpelCompiler20 extends BpelCompiler {
         registerActivityCompiler(ForEachActivity.class, new ForEachGenerator());
 
         registerExpressionLanguage(OASIS_EXPLANG_XPATH_1_0, new XPath10ExpressionCompilerBPEL20());
+        
+        // AO4ODE:
+        registerActivityCompiler(Proceed.class, new ProceedGenerator());
         
         try {
             registerExpressionLanguage(OASIS_EXPLANG_XPATH_2_0,

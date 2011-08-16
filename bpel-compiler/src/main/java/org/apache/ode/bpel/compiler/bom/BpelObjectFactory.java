@@ -28,7 +28,6 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -257,6 +256,11 @@ public class BpelObjectFactory {
         _mappings.put(ExtensibilityQNames.FAILURE_HANDLING_RETRY_FOR, FailureHandling.RetryFor.class);
         _mappings.put(ExtensibilityQNames.FAILURE_HANDLING_RETRY_DELAY, FailureHandling.RetryDelay.class);
         _mappings.put(ExtensibilityQNames.FAILURE_HANDLING_FAULT_ON, FailureHandling.FaultOnFailure.class);
+        
+        //
+        // AO4ODE: Mappings
+        //
+        _mappings.put(Bpel20QNames.PROCEED, Proceed.class);
         
     }
 

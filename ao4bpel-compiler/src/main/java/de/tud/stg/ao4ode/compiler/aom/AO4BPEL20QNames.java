@@ -12,7 +12,7 @@ public abstract class AO4BPEL20QNames {
     public static final QName ADVICE = newFinalQName("advice");
     public static final QName POINTCUT = newFinalQName("pointcut");
     public static final QName POINTCUTS = newFinalQName("pointcuts");
-
+    
     private static QName newFinalQName(String localname) {
         return new QName(NS_AO4VPEL2_0_ASPECT, localname);
     }

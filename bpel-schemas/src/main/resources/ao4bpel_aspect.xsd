@@ -44,8 +44,12 @@
     
     <xsd:complexType name="tAdvice">
 		<xsd:complexContent>
-			<xsd:extension base="bpel:tProcess">				
+			<xsd:extension base="bpel:tProcess">
+				<xsd:sequence>
+        			<xsd:element name="proceed" type="xsd:string"/>
+      			</xsd:sequence>							
 			</xsd:extension>
+			<xsd:attribute name="type" type="xsd:string" use="required"/>
 		</xsd:complexContent>
 	</xsd:complexType>
     

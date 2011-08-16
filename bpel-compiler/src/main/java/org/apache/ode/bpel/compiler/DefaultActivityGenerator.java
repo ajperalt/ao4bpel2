@@ -29,7 +29,8 @@ import org.w3c.dom.Element;
 /**
  * Base implementation of the {@link ActivityGenerator} interface.
  */
-abstract class DefaultActivityGenerator implements ActivityGenerator {
+// AO4ODE: changed visibility to public
+public abstract class DefaultActivityGenerator implements ActivityGenerator {
     protected CompilerContext _context;
 
     public void setContext(CompilerContext context) {

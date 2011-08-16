@@ -1,14 +1,18 @@
 package de.tud.stg.ao4ode.aspectmanager;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.ode.bpel.compiler.bom.CreateInstanceActivity;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OPointcut;
+import org.apache.ode.bpel.o.OProceed;
 
 import de.tud.stg.ao4ode.facts.BpelFactsManager;
 
@@ -22,6 +26,7 @@ public class AspectManager {
 	private BpelFactsManager fm = null;
 	
 	private AspectStore aspectStore;
+	private Map<Long,OActivity> jpActivities = new HashMap<Long,OActivity>();
 	
 	private AspectManager() {	
 		fm = BpelFactsManager.getInstance();
@@ -82,7 +87,10 @@ public class AspectManager {
 						
 						log.debug("POINTCUT MATCH AT " + xpath + ": " + pointcut);
 						
-						return aspect.getOAspect().getOAdvice();
+						// TODO: Merge multiple advices into one based on type
+						// and order attribute
+						OAdvice oadvice = aspect.getOAspect().getOAdvice();						
+						return oadvice;
 						
 					}
 					else {
@@ -117,6 +125,14 @@ public class AspectManager {
 	// TODO: Avoid singleton pattern
 	public static AspectManager getInstance() {				
 		return instance;
+	}
+
+	public void addJPActivity(long pid, OActivity oactivity) {		
+		jpActivities.put(pid, oactivity);
+	}
+	
+	public OActivity getJPActivity(long pid) {		
+		return jpActivities.get(pid);
 	}
 
 }

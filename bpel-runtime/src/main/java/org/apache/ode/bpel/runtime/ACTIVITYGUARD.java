@@ -74,8 +74,9 @@ import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
 
-import de.tud.stg.ao4ode.aspectmanager.AspectManager;
 import de.tud.stg.ao4ode.runtime.AO4ODEExecutionQueueImpl;
+import de.tud.stg.ao4ode.runtime.AdviceActivity;
+import de.tud.stg.ao4ode.runtime.AspectManager;
 import de.tud.stg.ao4ode.runtime.facts.ODEInvokeFact;
 
 import java.io.ByteArrayInputStream;
@@ -106,6 +107,8 @@ public class ACTIVITYGUARD extends ACTIVITY {
     private boolean _firstTime = true;
 
     private ActivityFailure _failure;
+    
+    ActivityInfo activity = null;
 
     public ACTIVITYGUARD(ActivityInfo self, ScopeFrame scopeFrame, LinkFrame linkFrame) {
         super(self, scopeFrame, linkFrame);
@@ -124,7 +127,7 @@ public class ACTIVITYGUARD extends ACTIVITY {
             if (evaluateJoinCondition()) {
             	
                 // intercept completion channel in order to execute transition conditions.
-                final ActivityInfo activity = new ActivityInfo(genMonotonic(),
+                activity = new ActivityInfo(genMonotonic(),
                 		_self.o,
                 		_self.self,
                 		newChannel(ParentScopeChannel.class));
@@ -132,27 +135,32 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 // AO4ODE: Pointcut matching
             	AspectManager am = AspectManager.getInstance();
 
-            	final OAdvice oAdvice = am.getAdvice(
-            			getBpelRuntimeContext().getPid(),
-            			_self.o);
+            	AdviceActivity aa = am.getAdvice(
+            			getBpelRuntimeContext().getPid(), _self.o);
             	
             	// FIXME: No pointcut matching during advice execution?            	
-                if(!(_self.o.getOwner() instanceof OAdvice) && oAdvice != null) {
+                if(!(_self.o.getOwner() instanceof OAdvice) && aa != null) {
                 	
-                	// AO4ODE: TODO: Add PartnerLink of Advice to Process
+                	// AO4ODE: Add PartnerLinks of Advices to Process
                 	BpelRuntimeContextImpl rt = (BpelRuntimeContextImpl)getBpelRuntimeContext();
-                	BpelProcess bpelProcess = rt._bpelProcess;                	
-                	Map<String, Endpoint> invokeEndpoints = am.getAspectConfiguration(oAdvice.getOAspect().getQName()).getInvokeEndpoints();
-                	if(invokeEndpoints.size() > 0) {
-                		bpelProcess.addAdvice(oAdvice, invokeEndpoints);                		
-                	}               	
+                	BpelProcess bpelProcess = rt._bpelProcess;
+                	for(OAdvice oAdvice : aa.getAdvices()) {
+                		__log.error("Adding advice " + oAdvice.getName() + " to bpelProcess: " + bpelProcess.getOProcess().getName());
+                		Map<String, Endpoint> invokeEndpoints = am.getAspectConfiguration(oAdvice.getOAspect().getQName()).getInvokeEndpoints();
+                		if(invokeEndpoints.size() > 0) {
+                			bpelProcess.addAdvice(oAdvice, invokeEndpoints);                		
+                		}
+                	}
+                	                	
+                	final ActivityInfo adviceActivityInfo = new ActivityInfo(genMonotonic(),
+                    		aa.getOAdviceActivity(),
+                    		_self.self,
+                    		newChannel(ParentScopeChannel.class));
                 	
-                    // RUN ADVICE
-                	ADVICE advice = new ADVICE(this, oAdvice, activity);
-                	
-                	__log.debug("Executing ADVICE: " + advice);
-                	
-                	instance(advice);
+                	AspectManager.getInstance().addJPActivity(getBpelRuntimeContext().getPid(),
+            				this);
+                	                	
+                	runActivity(adviceActivityInfo);
                 	
                 }
                 else {
@@ -201,6 +209,10 @@ public class ACTIVITYGUARD extends ACTIVITY {
 
             object(false, mlset);
         }
+    }
+    
+    public void proceed() {
+    	this.runActivity(activity);
     }
 
     // AO4ODE: Run the activity. Also used by ADVICE.
@@ -257,11 +269,11 @@ public class ACTIVITYGUARD extends ACTIVITY {
     }
 
     private static ACTIVITY createActivity(ActivityInfo activity, ScopeFrame scopeFrame, LinkFrame linkFrame) {
-        return __activityTemplateFactory.createInstance(activity.o,activity, scopeFrame, linkFrame);
+    	return __activityTemplateFactory.createInstance(activity.o,activity, scopeFrame, linkFrame);    	
     }
 
     private ACTIVITY createActivity(ActivityInfo activity) {
-        return createActivity(activity,_scopeFrame, _linkFrame);
+    	return createActivity(activity,_scopeFrame, _linkFrame);
     }
 
     private void startGuardedActivity() {

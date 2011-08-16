@@ -33,7 +33,7 @@ public class AspectObjectFactory extends BpelObjectFactory {
 		_mappings.put(AO4BPEL20QNames.ASPECT, Aspect.class);
 		_mappings.put(AO4BPEL20QNames.ADVICE, Advice.class);
 		_mappings.put(AO4BPEL20QNames.POINTCUT, Pointcut.class);
-		_mappings.put(AO4BPEL20QNames.POINTCUTS, Pointcuts.class);
+		_mappings.put(AO4BPEL20QNames.POINTCUTS, Pointcuts.class);		
 	}
 	
 	public static AspectObjectFactory getInstance() {
@@ -70,11 +70,13 @@ public class AspectObjectFactory extends BpelObjectFactory {
         _xr.setFeature("http://xml.org/sax/features/namespaces",true);
         _xr.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
         _xr.parse(isrc);
-        BpelObject bpelObject = createBpelObject(doc.getDocumentElement(), systemURI);        
+        BpelObject bpelObject = this.createBpelObject(doc.getDocumentElement(), systemURI);        
         return (Aspect) bpelObject;
     }
         
+    @Override
     public BpelObject createBpelObject(Element el, URI uri) {
+    	__log.debug("AspectObjectFactory.createBpelObject: " + el);
         QName type = new QName(el.getNamespaceURI(), el.getLocalName());
                 
         Class cls = _mappings.get(type);

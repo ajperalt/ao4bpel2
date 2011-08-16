@@ -45,13 +45,15 @@ public class BpelObject implements SourceLocation {
 
     public static final QName ATTR_LINENO = new QName("urn:org.apache.ode.bpel.compiler", "lineno");
 
-    private final Element _element;
+    // AO4ODE: changed visibility to public
+    public final Element _element;
 
     private final QName _type;
 
     private final NSContext _nsContext;
 
-    private List<BpelObject> _children = null;
+    // AO4ODE: changed visibility to public
+    public List<BpelObject> _children = null;
     
     /** URI of the source document. */
     // AO4ODE: changed visibility to protected
