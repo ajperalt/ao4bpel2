@@ -88,7 +88,7 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
         OAspect oaspect;
         try {
         	File _outputDir = new File(SystemUtils.userDirectory());
-        	oaspect = this.compile(aspect,wf);
+        	oaspect = this.compile(aspect,wf,scope);
         }
         catch (CompilationException cex) {
             throw cex;
@@ -98,7 +98,7 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
         
 	}
 	
-	public OAspect compile(final Aspect aspect, ResourceFinder rf) throws CompilationException {
+	public OAspect compile(final Aspect aspect, ResourceFinder rf, String scope) throws CompilationException {
 		
 		OAspect oaspect = new OAspect();
 		
@@ -112,6 +112,8 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 		
 		// TODO: Versioning of aspects?
 		OAdvice oadvice = compile(aspect.getAdvice(), rf);
+		
+		oaspect.setScope(scope);
 		
 		// Compile pointcuts
         List<Pointcut> pointcuts = aspect.getPointcuts().getPointcuts();

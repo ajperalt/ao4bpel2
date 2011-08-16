@@ -58,26 +58,35 @@ public class AspectManager {
 			
 			for(AspectConfImpl aspect : aspects) {
 				
-				// TODO: Build composite advice, for now, use the first match
-				for(OPointcut pointcut : aspect.getOAspect().getPointcuts()) {					
-					if(fm.solve(pointcut.getName(),
-							"Invalid Pointcut",
-							pointcut.getQuery(), pid)) {						
-						log.debug("POINTCUT MATCH AT " + xpath + ": " + pointcut);
-						OAdvice oAdvice = aspect.getOAspect().getOAdvice();
-						log.error("TYPE: " + oAdvice.getType());
-						if(oAdvice.getType().equals(OAdvice.TYPE.BEFORE)) {
-							beforeAdvices.add(aspect.getOAspect().getOAdvice());
+				// Scoping
+				String scope = aspect.getOAspect().getScope();
+				log.debug("Checking scope for aspect " + aspect.getOAspect().getQName() + ": " + scope);
+				if(scope == null || fm.solve("Scope for " + aspect.getOAspect().getQName(),
+						"Invalid Scope",
+						scope, pid)) {
+
+					log.debug("Scope " + scope + " is active, checking pointcuts!");
+					
+					// Check all pointcuts
+					for(OPointcut pointcut : aspect.getOAspect().getPointcuts()) {					
+						if(fm.solve(pointcut.getName(),
+								"Invalid Pointcut",
+								pointcut.getQuery(), pid)) {						
+							log.debug("POINTCUT MATCH AT " + xpath + ": " + pointcut);
+							OAdvice oAdvice = aspect.getOAspect().getOAdvice();
+							if(oAdvice.getType().equals(OAdvice.TYPE.BEFORE)) {
+								beforeAdvices.add(aspect.getOAspect().getOAdvice());
+							}
+							if(oAdvice.getType().equals(OAdvice.TYPE.AROUND)) {
+								aroundAdvices.add(aspect.getOAspect().getOAdvice());
+							}
+							if(oAdvice.getType().equals(OAdvice.TYPE.AFTER)) {
+								afterAdvices.add(aspect.getOAspect().getOAdvice());
+							}
 						}
-						if(oAdvice.getType().equals(OAdvice.TYPE.AROUND)) {
-							aroundAdvices.add(aspect.getOAspect().getOAdvice());
+						else {
+							log.debug("NO POINTCUT MATCH FOR POINTCUT: " + pointcut);
 						}
-						if(oAdvice.getType().equals(OAdvice.TYPE.AFTER)) {
-							afterAdvices.add(aspect.getOAspect().getOAdvice());
-						}
-					}
-					else {
-						log.debug("NO POINTCUT MATCH FOR POINTCUT: " + pointcut);
 					}
 				}
 			}

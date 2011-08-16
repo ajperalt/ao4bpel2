@@ -151,10 +151,20 @@ public class DeploymentWebService {
                         }
                     }
                     
-                    String scope = "true.";
+                    if (scopePart == null) {
+                        scopePart = OMUtils.getFirstChildWithName(deployElement, "scope");
+                        if (scopePart != null && __log.isWarnEnabled()) {
+                            __log.warn("Invalid incoming request detected for operation " + messageContext.getAxisOperation().getName() + ". Scope part should have no namespace but has " + scopePart.getQName().getNamespaceURI());
+                        }
+                    }
+                    
+                    
+                    String scope = "true.";                    
                     if(scopePart != null) {
+                    	__log.warn("scopePart: " + scopePart.toString());
                     	scope = scopePart.getText(); 
                     }
+                    __log.warn("scope: "  + scope);
 
                     OMElement zip = null;
                     if (packagePart != null) {

@@ -95,11 +95,15 @@ if (!isMultipart) {
                             OMElement scope = omFactory.createOMElement("scope", ns);
                             OMElement packageCont = omFactory.createOMElement("package", ns);
                             OMElement zipEle = omFactory.createOMElement("zip", ns);
+                            if(scopeDefinition != null) {
+                            	OMText scopeText = omFactory.createOMText(scope, scopeDefinition);
+                            }
                             if(packageName != null && encodedString != null) {
                                 OMText nameText = omFactory.createOMText(name, packageName);
                                 OMText packageText = omFactory.createOMText(zipEle, encodedString);
                                 packageCont.addChild(zipEle);
                                 payload.addChild(name);
+                                payload.addChild(scope);
                                 payload.addChild(packageCont);
 
                                 //creating service client
