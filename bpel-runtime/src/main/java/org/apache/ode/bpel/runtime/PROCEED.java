@@ -20,6 +20,8 @@ package org.apache.ode.bpel.runtime;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.ode.bpel.o.OAdvice;
+import org.apache.ode.bpel.o.OProceed;
 
 import de.tud.stg.ao4ode.runtime.AspectManager;
 
@@ -36,10 +38,10 @@ class PROCEED extends ACTIVITY {
 	}
 
 	public final void run() {
-		__log.debug("<proceed name=" + _self.o + ">");	
+		__log.debug("<proceed name=" + _self.o + ">");		
 		long pid = this.getBpelRuntimeContext().getPid();
 		ACTIVITYGUARD jpActivity = AspectManager.getInstance().getJPActivity(pid);	
-		jpActivity.proceed();
+		jpActivity.proceed(this);		
 	}
 
 }

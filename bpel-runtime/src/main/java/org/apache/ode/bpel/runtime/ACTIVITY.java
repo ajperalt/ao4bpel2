@@ -162,7 +162,8 @@ public abstract class ACTIVITY extends BpelJacobRunnable implements IndexedObjec
         // TODO: register listeners for target / incoming links
     }
 
-    protected EvaluationContext getEvaluationContext() {
+    // AO4ODE: changed visibility to public
+    public EvaluationContext getEvaluationContext() {
         return new ExprEvaluationContextImpl(_scopeFrame, getBpelRuntimeContext());
     }
 

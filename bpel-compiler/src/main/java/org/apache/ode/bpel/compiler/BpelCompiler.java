@@ -98,6 +98,7 @@ import org.apache.ode.bpel.o.OExpressionLanguage;
 import org.apache.ode.bpel.o.OExtVar;
 import org.apache.ode.bpel.o.OFaultHandler;
 import org.apache.ode.bpel.o.OFlow;
+import org.apache.ode.bpel.o.OJPVarType;
 import org.apache.ode.bpel.o.OLValueExpression;
 import org.apache.ode.bpel.o.OLink;
 import org.apache.ode.bpel.o.OMessageVarType;
@@ -125,9 +126,13 @@ import org.apache.ode.utils.xsd.XSUtils;
 import org.apache.ode.utils.xsd.XsdException;
 import org.apache.ode.utils.xsl.XslTransformHandler;
 import org.apache.xerces.xni.parser.XMLEntityResolver;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.UserDataHandler;
 
 /**
  * Compiler for converting BPEL process descriptions (and their associated WSDL
@@ -443,8 +448,13 @@ public abstract class BpelCompiler implements CompilerContext {
             throw new CompilationException(__cmsgs.errMessageVariableRequired(var.name));
         OMessageVarType msgVarType = (OMessageVarType) var.type;
         OMessageVarType.Part part = msgVarType.parts.get(partname);
+        // AO4ODE: don't complain about ThisJP variables
         if (part == null)
-            throw new CompilationException(__cmsgs.errUndeclaredMessagePart(var.name,
+        	if(var.name.contains("ThisJP")) {
+            	part = new OMessageVarType.Part(var.getOwner(), partname, new OElementVarType(var.getOwner(), new QName(null, "NullElement")));
+            }
+            else
+            	throw new CompilationException(__cmsgs.errUndeclaredMessagePart(var.name,
                     ((OMessageVarType) var.type).messageType, partname));
         return part;
     }

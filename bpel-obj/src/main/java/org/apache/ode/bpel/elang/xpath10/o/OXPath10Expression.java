@@ -182,6 +182,10 @@ public class OXPath10Expression extends OLValueExpression implements Serializabl
             if (xpath.substring(1, xpath.length()).startsWith(varName))
                 return vars.get(varName);
         }
+        // AO4ODE: FIXME: Hack!
+        if(vars.containsKey("ThisJPOutVariable"))
+        	return vars.get("ThisJPOutVariable");
+        
         throw new IllegalStateException("Either the expression doesn't start with a variable reference or " +
                 "the reference is unknow.");
 	}

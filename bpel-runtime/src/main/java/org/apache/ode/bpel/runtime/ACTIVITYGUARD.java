@@ -109,6 +109,7 @@ public class ACTIVITYGUARD extends ACTIVITY {
     private ActivityFailure _failure;
     
     ActivityInfo activity = null;
+    ActivityInfo adviceActivity = null;
 
     public ACTIVITYGUARD(ActivityInfo self, ScopeFrame scopeFrame, LinkFrame linkFrame) {
         super(self, scopeFrame, linkFrame);
@@ -152,7 +153,7 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 		}
                 	}
                 	                	
-                	final ActivityInfo adviceActivityInfo = new ActivityInfo(genMonotonic(),
+                	adviceActivity = new ActivityInfo(genMonotonic(),
                     		aa.getOAdviceActivity(),
                     		_self.self,
                     		newChannel(ParentScopeChannel.class));
@@ -160,7 +161,7 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 	AspectManager.getInstance().addJPActivity(getBpelRuntimeContext().getPid(),
             				this);
                 	                	
-                	runActivity(adviceActivityInfo);
+                	runActivity(adviceActivity);
                 	
                 }
                 else {
@@ -211,12 +212,119 @@ public class ACTIVITYGUARD extends ACTIVITY {
         }
     }
     
-    public void proceed() {
-    	this.runActivity(activity);
+    // Run the JP activity and continue advice sequence afterwards
+    public void proceed(final PROCEED proceedActivity) {
+    	// this.runActivity(activity);
+    	ActivityExecStartEvent aese = new ActivityExecStartEvent();
+        sendEvent(aese);
+        
+        // AO4ODE: Send BeforeInvoke Event
+        if(_oactivity.getType().equals("OInvoke")) {                	
+        	InvokeExecStartEvent iese = new InvokeExecStartEvent((OInvoke)_oactivity);
+        	sendEvent(iese);
+        }
+        
+        // Run JP activity
+    	instance(createActivity(activity));
+    	
+    	// Listen for completion of JP activity and continue sequence
+    	object(new ParentScopeChannelListener(activity.parent) {
+            private static final long serialVersionUID = -8564969265471906493L;
+
+            public void compensate(OScope scope, SynchChannel ret) {
+            	__log.info("PROCEED COMPENSATE");
+                assert false;
+            }
+
+            public void completed(FaultData fault, Set<CompensationHandler> compensations) {
+                BpelRuntimeContext nativeAPI = (BpelRuntimeContext)getExtension(BpelRuntimeContext.class);
+                if (fault == null) {
+                    // nativeAPI.completedOk();
+                	__log.error("PROCEED COMPLETED - OK");                	
+                } else {
+                    // nativeAPI.completedFault(fault);
+                	__log.error("PROCEED COMPLETED - FAULT");
+               	 	__log.error("PROCEED FAILED: " + fault.getExplanation());               	 	
+                }
+                
+                // Continue advice sequence
+                continueAdviceSequence(proceedActivity);
+            }
+
+            public void cancelled() {
+            	__log.debug("PROCEED cancelled");
+            	// Continue advice sequence
+                continueAdviceSequence(proceedActivity);
+            }
+
+            public void failure(String reason, Element data) {
+                // FaultData faultData = createFault(OFailureHandling.FAILURE_FAULT_NAME, oAdvice, reason);
+                // this.completed(faultData, CompensationHandler.emptySet());
+            	__log.error("PROCEED FAILURE");
+            	
+            	// Continue advice sequence
+                continueAdviceSequence(proceedActivity);
+            }
+        });
+    	
+    }
+    
+    public void continueAdviceSequence(PROCEED proceedActivity) {
+    	proceedActivity._self.parent.completed(null, CompensationHandler.emptySet());
+    }
+    
+    
+    // AO4ODE: Run the adviceActivity and continue the process
+    protected void runAdviceActivity(ActivityInfo adviceActivity) {
+    	ActivityExecStartEvent aese = new ActivityExecStartEvent();
+        sendEvent(aese);
+        
+    	instance(createActivity(adviceActivity));
+    	// Listen for completion of JP activity and continue sequence
+    	object(new ParentScopeChannelListener(adviceActivity.parent) {
+            private static final long serialVersionUID = -8583659265471906493L;
+
+            public void compensate(OScope scope, SynchChannel ret) {
+            	__log.info("ADVICE SEQUENCE COMPENSATE");
+                assert false;
+            }
+
+            public void completed(FaultData fault, Set<CompensationHandler> compensations) {
+                BpelRuntimeContext nativeAPI = (BpelRuntimeContext)getExtension(BpelRuntimeContext.class);
+                if (fault == null) {
+                    // nativeAPI.completedOk();
+                	__log.error("ADVICE SEQUENCE COMPLETED - OK");                	
+                } else {
+                    // nativeAPI.completedFault(fault);
+                	__log.error("ADVICE SEQUENCE COMPLETED - FAULT");
+               	 	__log.error("ADVICE SEQUENCE FAILED: " + fault.getExplanation());               	 	
+                }
+                
+                // Continue process
+                instance(new TCONDINTERCEPT(activity.parent));
+            }
+
+            public void cancelled() {
+            	__log.debug("ADVICE SEQUENCE cancelled");
+            	
+            	// Continue process
+            	instance(new TCONDINTERCEPT(activity.parent));
+            }
+
+            public void failure(String reason, Element data) {
+                // FaultData faultData = createFault(OFailureHandling.FAILURE_FAULT_NAME, oAdvice, reason);
+                // this.completed(faultData, CompensationHandler.emptySet());
+            	__log.error("ADVICE SEQUENCE FAILURE");
+            	
+            	// Continue process
+            	instance(new TCONDINTERCEPT(activity.parent));
+            }
+        });
+    	
     }
 
-    // AO4ODE: Run the activity. Also used by ADVICE.
-    protected void runActivity(ActivityInfo activity) {    	
+    // AO4ODE: Run the activity and continue the process
+    protected void runActivity(ActivityInfo activity) {
     	ActivityExecStartEvent aese = new ActivityExecStartEvent();
         sendEvent(aese);
         
@@ -227,6 +335,7 @@ public class ACTIVITYGUARD extends ACTIVITY {
         }
         
     	instance(createActivity(activity));
+    	
     	instance(new TCONDINTERCEPT(activity.parent));
     }
 

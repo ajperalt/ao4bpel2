@@ -21,11 +21,13 @@ package org.apache.ode.bpel.runtime;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.common.FaultException;
+import org.apache.ode.bpel.elang.xpath10.o.OXPath10Expression;
 import org.apache.ode.bpel.evt.PartnerLinkModificationEvent;
 import org.apache.ode.bpel.evt.ScopeEvent;
 import org.apache.ode.bpel.evt.VariableModificationEvent;
 import org.apache.ode.bpel.explang.EvaluationContext;
 import org.apache.ode.bpel.explang.EvaluationException;
+import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OAssign;
 import org.apache.ode.bpel.o.OAssign.DirectRef;
 import org.apache.ode.bpel.o.OAssign.LValueExpression;
@@ -52,6 +54,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
+
+import de.tud.stg.ao4ode.runtime.AspectManager;
 
 import javax.xml.namespace.QName;
 
@@ -133,6 +137,7 @@ class ASSIGN extends ACTIVITY {
             try {
                 lvar = _scopeFrame.resolve(to.getVariable());
             } catch (RuntimeException e) {
+            	e.printStackTrace();            	
                 __log.error("iid: " + getBpelRuntimeContext().getPid() + " error evaluating lvalue");
                 throw new FaultException(getOAsssign().getOwner().constants.qnSelectionFailure, e.getMessage());
             }
@@ -143,6 +148,7 @@ class ASSIGN extends ACTIVITY {
             }
             if (!napi.isVariableInitialized(lvar)) {
                 Document doc = DOMUtils.newDocument();
+                                
                 Node val = to.getVariable().type.newInstance(doc);
                 if (val.getNodeType() == Node.TEXT_NODE) {
                     Element tempwrapper = doc.createElementNS(null, "temporary-simple-type-wrapper");
@@ -347,6 +353,31 @@ class ASSIGN extends ACTIVITY {
             __log.debug("Assign.copy(" + ocopy + ")");
         
         ScopeEvent se;
+        
+        // AO4ODE: Replace ThisJP* to / from elements with real LValue/RValue
+        if(ocopy.getOwner() instanceof OAdvice
+        		&& ocopy.to.getVariable().name.contains("ThisJPOutVariable")) {
+        	OAdvice oadvice = (OAdvice)ocopy.getOwner();
+        	AspectManager am = AspectManager.getInstance();
+        	ACTIVITYGUARD ag = am.getJPActivity(getBpelRuntimeContext().getPid());
+        	
+        	// Rember part name
+        	String toPartName = ((VariableRef)ocopy.to).part.name;
+        	String toHeaderPart = null;
+        	if(((VariableRef)ocopy.to).headerPart != null)
+        		toHeaderPart = ((VariableRef)ocopy.to).headerPart.name;
+        	
+        	// Create new VariableRef to OutputVar
+        	ocopy.to = new VariableRef(ag._self.getO().getOwner());
+        	((VariableRef)ocopy.to).variable = oadvice.getOutputVar();        	
+        	        	
+        	OMessageVarType toVarType = ((OMessageVarType)oadvice.getOutputVar().type);
+        	
+        	((VariableRef)ocopy.to).part = toVarType.parts.get(toPartName);
+        	
+        	if(toHeaderPart != null)
+        		((VariableRef)ocopy.to).headerPart = ((OMessageVarType)oadvice.getOutputVar().type).parts.get(toHeaderPart); 
+        }
 
         // Check for message to message - copy, we can do this efficiently in
         // the database.
@@ -611,6 +642,8 @@ class ASSIGN extends ACTIVITY {
             Node qualLVal = DOMUtils.findChildByName((Element) data, partName);
             if (part.type instanceof OElementVarType) {
                 QName elName = ((OElementVarType) part.type).elementType;
+                // AO4ODE: Debugging
+                __log.debug("Trying to find childByName: " + qualLVal + ", " + elName);
                 qualLVal = DOMUtils.findChildByName((Element) qualLVal, elName);
             } else if (part.type == null) {
                 // Special case of header parts never referenced in the WSDL def
@@ -631,6 +664,21 @@ class ASSIGN extends ACTIVITY {
         if (expression != null) {
             // Neat little trick....
             try {
+            	// AO4ODE: Replace ThisJPOutVariable with real name at JP
+            	// REMOVE: we do this at XPath10ExpressionRuntime
+            	
+            	/*
+            	if(this.getOAsssign().getOwner() instanceof OAdvice
+            			&& expression instanceof OXPath10Expression) {
+            		OXPath10Expression xpathExpression = (OXPath10Expression)expression;
+            		OAdvice oadvice = (OAdvice)this.getOAsssign().getOwner();
+            		Variable jpOutVar = oadvice.getOutputVar();
+            		String jpOutVariableName = jpOutVar.name;            		
+            		xpathExpression.xpath = xpathExpression.xpath.replaceAll("ThisJPOutVariable", jpOutVariableName);
+            	}
+            	*/
+            	
+            	
                 data = ec.evaluateQuery(data, expression);
             } catch (EvaluationException e) {
                 String msg = __msgs.msgEvalException(expression.toString(), e.getMessage());

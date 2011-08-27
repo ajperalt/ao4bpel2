@@ -37,6 +37,8 @@ import org.apache.ode.bpel.elang.xpath10.o.OXPath10Expression;
 import org.apache.ode.bpel.elang.xpath10.o.OXPath10ExpressionBPEL20;
 import org.apache.ode.bpel.explang.EvaluationContext;
 import org.apache.ode.bpel.explang.EvaluationException;
+import org.apache.ode.bpel.o.OActivity;
+import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OLink;
 import org.apache.ode.bpel.o.OMessageVarType;
 import org.apache.ode.bpel.o.OProcess;
@@ -44,6 +46,7 @@ import org.apache.ode.bpel.o.OScope;
 import org.apache.ode.bpel.o.OVarType;
 import org.apache.ode.bpel.o.OXsdTypeVarType;
 import org.apache.ode.bpel.o.OXslSheet;
+import org.apache.ode.bpel.runtime.ACTIVITYGUARD;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.utils.xsl.XslTransformHandler;
 import org.jaxen.Context;
@@ -56,6 +59,9 @@ import org.jaxen.XPathFunctionContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import de.tud.stg.ao4ode.runtime.AdviceActivity;
+import de.tud.stg.ao4ode.runtime.AspectManager;
 
 
 /**
@@ -145,6 +151,18 @@ class JaxenContexts implements FunctionContext, VariableContext {
                 return _xpathEvalCtx.getProcessId();
             }
         }
+        
+        // AO4ODE: REMOVE:
+        /*
+        AspectManager am = AspectManager.getInstance();
+        ACTIVITYGUARD ag = am.getJPActivity(_xpathEvalCtx.getProcessId());        
+        OActivity oactivity = ag.getActivityInfo().getO();
+        if(oactivity.getOwner() instanceof OAdvice) {
+        	OAdvice oadvice = (OAdvice) oactivity.getOwner();
+        	if(localName.equals("ThisJPOutVariable"))
+        		localName = oadvice.getOutputVar().name;        	
+        }
+        */
 
         OXPath10ExpressionBPEL20 expr = (OXPath10ExpressionBPEL20)_oxpath;
         if(expr.isJoinExpression){
@@ -181,7 +199,9 @@ class JaxenContexts implements FunctionContext, VariableContext {
                     if (typePart == null) {
                         throw new WrappedFaultException.JaxenUnresolvableException(
                                 new FaultException(variable.getOwner().constants.qnSelectionFailure,
-                                        "Unknown part " + partName + " for variable " + localName));
+                                        "Unknown part " + partName + " for variable " + localName
+                                        // AO4ODE: REMOVE
+                                        + " / Parts: " + ((OMessageVarType)type).parts));
                     }
                     type = typePart.type;
                 }

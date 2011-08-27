@@ -26,7 +26,11 @@ import org.apache.ode.bpel.explang.ConfigurationException;
 import org.apache.ode.bpel.explang.EvaluationContext;
 import org.apache.ode.bpel.explang.EvaluationException;
 import org.apache.ode.bpel.explang.ExpressionLanguageRuntime;
+import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OExpression;
+import org.apache.ode.bpel.o.OMessageVarType;
+import org.apache.ode.bpel.o.OScope.Variable;
+import org.apache.ode.bpel.runtime.ACTIVITYGUARD;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.utils.ISO8601DateParser;
 import org.apache.ode.utils.xsd.Duration;
@@ -40,6 +44,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
+
+import de.tud.stg.ao4ode.runtime.AspectManager;
 
 import javax.xml.transform.TransformerFactory;
 
@@ -157,8 +163,28 @@ public class XPath10ExpressionRuntime implements ExpressionLanguageRuntime {
         }
     }
 
-    private Context createContext(OXPath10Expression oxpath, EvaluationContext ctx) {
-        JaxenContexts bpelSupport = new JaxenContexts(oxpath, _extensionFunctions, ctx);
+    private Context createContext(OXPath10Expression oxpath, EvaluationContext ectx) {
+    	
+    	// AO4ODE: TODO: Replace ThisJP* in xpath expressions with real names and
+    	// use process context instead of advice context
+    	EvaluationContext ctx = null;
+    	if(oxpath.getOwner() instanceof OAdvice
+    			&& ((OAdvice)oxpath.getOwner()).getOutputVar() != null
+    			&& (oxpath.xpath.contains("ThisJPOutVariable"))) {
+    		AspectManager am = AspectManager.getInstance();
+    		ACTIVITYGUARD ag = am.getJPActivity(ectx.getProcessId());
+    		OAdvice oadvice = (OAdvice)oxpath.getOwner();
+    		Variable jpoutvar = oxpath.vars.get("ThisJPOutVariable");
+    		oxpath.vars.remove(oadvice.getOutputVar().name);
+    		oxpath.vars.put(oadvice.getOutputVar().name, jpoutvar);    		
+    		oxpath.xpath = oxpath.xpath.replaceAll("ThisJPOutVariable", oadvice.getOutputVar().name);
+    		ctx = ag.getEvaluationContext();
+    	}
+    	else {
+    		ctx = ectx;    		
+    	}
+    	
+    	JaxenContexts bpelSupport = new JaxenContexts(oxpath, _extensionFunctions, ctx);
         ContextSupport support = new ContextSupport(new JaxenNamespaceContextAdapter(oxpath.namespaceCtx), bpelSupport,
                 bpelSupport, new BpelDocumentNavigator(ctx.getRootNode()));
         Context jctx = new Context(support);

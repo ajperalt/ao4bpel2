@@ -13,11 +13,13 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.compiler.bom.CreateInstanceActivity;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
+import org.apache.ode.bpel.o.OInvoke;
 import org.apache.ode.bpel.o.OPointcut;
 import org.apache.ode.bpel.o.OProceed;
 import org.apache.ode.bpel.o.OSequence;
 import org.apache.ode.bpel.runtime.ACTIVITY;
 import org.apache.ode.bpel.runtime.ACTIVITYGUARD;
+import org.apache.ode.bpel.runtime.ScopeFrame;
 
 import de.tud.stg.ao4ode.aspectmanager.AspectConfImpl;
 import de.tud.stg.ao4ode.aspectmanager.AspectStore;
@@ -71,9 +73,20 @@ public class AspectManager {
 					for(OPointcut pointcut : aspect.getOAspect().getPointcuts()) {					
 						if(fm.solve(pointcut.getName(),
 								"Invalid Pointcut",
-								pointcut.getQuery(), pid)) {						
+								pointcut.getQuery(), pid)) {
+							
 							log.debug("POINTCUT MATCH AT " + xpath + ": " + pointcut);
+							
 							OAdvice oAdvice = aspect.getOAspect().getOAdvice();
+							oAdvice.setProcessId(pid);
+							oAdvice.setJPActivity(oActivity);							
+							if(oActivity instanceof OInvoke) {
+								OInvoke oinvoke = (OInvoke)oActivity;
+								oAdvice.setJPInVariable(oinvoke.inputVar);
+								oAdvice.setJPOutVariable(oinvoke.outputVar);
+							}
+							
+							
 							if(oAdvice.getType().equals(OAdvice.TYPE.BEFORE)) {
 								beforeAdvices.add(aspect.getOAspect().getOAdvice());
 							}
@@ -110,7 +123,7 @@ public class AspectManager {
 					}					
 				}
 				else  {
-					osequence.sequence.add(oActivity);
+					osequence.sequence.add(oActivity);					
 				}
 				
 				// After advice

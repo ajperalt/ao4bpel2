@@ -30,6 +30,7 @@ import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.bpel.o.OConstantVarType;
 import org.apache.ode.bpel.o.OExpressionLanguage;
+import org.apache.ode.bpel.o.OJPVarType;
 import org.apache.ode.bpel.o.OPointcut;
 import org.apache.ode.bpel.o.OScope;
 import org.apache.ode.bpel.o.OVarType;
@@ -256,6 +257,17 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
                             __log.debug("Compiled custom property variable " + ovar);
                     }
                 }
+                
+                // AO4ODE: ThisJPOutVariable has no declaration, so we need
+                // to add it here                
+                final OScope oscope = _structureStack.topScope();
+                OVarType varType = new OJPVarType(_oprocess, OJPVarType.Type.OUT);
+                OScope.Variable ovar = new OScope.Variable(_oprocess, varType);
+                ovar.name = "ThisJPOutVariable";
+                ovar.declaringScope = oscope;
+                ovar.debugInfo = createDebugInfo(null, "Advice context variable");
+                oscope.addLocalVariable(ovar);
+                
                 _structureStack.topScope().activity = compile(advice.getRootActivity());
             }
         });

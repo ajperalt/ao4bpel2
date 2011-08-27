@@ -61,7 +61,7 @@ public class ADVICE extends PROCESS {
         
         ScopeFrame adviceScopeFrame = new ScopeFrame(oAdvice.procesScope, scopeInstanceId, null, null);
         LinkFrame adviceLinkFrame = new LinkFrame(null);
-        
+                
         // Run advice
         __log.info("RUNNING BEFORE ADVICE");
         SCOPE scope = new SCOPE(child, adviceScopeFrame, adviceLinkFrame);
@@ -88,28 +88,19 @@ public class ADVICE extends PROCESS {
                 } else {
                     // nativeAPI.completedFault(fault);
                 	__log.error("ADVICE COMPLETED - FAULT");
-               	 	__log.error("ADVICE FAILED: " + fault.getExplanation());
+               	 	__log.error("ADVICE FAILED: " + fault.getExplanation());               	 	
                 }
-                
-                // If this advice is a before advice, proceed
-                /*
-                if(oAdvice.getType() == OAdvice.TYPE.BEFORE)
-                	proceed();
-                */
-                
             }
 
             public void cancelled() {
                 // this.completed(null, CompensationHandler.emptySet());
             	__log.debug("ADVICE cancelled");
-            	// proceed();
             }
 
             public void failure(String reason, Element data) {
                 // FaultData faultData = createFault(OFailureHandling.FAILURE_FAULT_NAME, oAdvice, reason);
                 // this.completed(faultData, CompensationHandler.emptySet());
             	__log.error("ADVICE FAILURE");
-            	// proceed();
             }
         });
     }

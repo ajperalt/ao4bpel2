@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.common.FaultException;
 import org.apache.ode.bpel.evt.ScopeEvent;
 import org.apache.ode.bpel.iapi.BpelEngineException;
+import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OElementVarType;
 import org.apache.ode.bpel.o.OMessageVarType;
 import org.apache.ode.bpel.o.OPartnerLink;
@@ -37,6 +38,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import de.tud.stg.ao4ode.runtime.AspectManager;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Set;
@@ -47,7 +50,8 @@ import javax.xml.namespace.QName;
 /**
  * N-tuple representing a scope "frame" (as in stack frame).
  */
-class ScopeFrame implements Serializable {
+// AO4ODE: Changed visibility to public
+public class ScopeFrame implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final Log __log = LogFactory.getLog(ScopeFrame.class);
 
@@ -98,9 +102,48 @@ class ScopeFrame implements Serializable {
     }
 
     public VariableInstance resolve(OScope.Variable variable) {
-        ScopeFrame scopeFrame = find(variable.declaringScope);
+    	
+    	// AO4ODE: TODO: Remove
+    	__log.debug("Resolving VariableInstance for variable: " + variable.name);
+   		
+    	ScopeFrame scopeFrame = null;
+    	
+    	// If the variable belongs to an advice, check if
+    	// it is a "context varieble" and if that is the case
+    	// use process scope to resolve it!
+    	if(variable.getOwner() instanceof OAdvice) {
+    		
+    		OAdvice oadvice = (OAdvice)variable.getOwner();
+    		AspectManager am = AspectManager.getInstance();
+    		ACTIVITYGUARD ag = am.getJPActivity(oadvice.getProcessId());
+    		
+    		if(variable.name.startsWith("ThisJP.")) {
+    			variable.name = variable.name.substring(variable.name.indexOf('.'));
+    			return ag._scopeFrame.resolve(variable);
+    		}
+    		else if(variable.name.equals("ThisJPOutVariable")) {
+    			return ag._scopeFrame.resolve(oadvice.getOutputVar());    			
+    		}
+    		else if(variable.name.equals("ThisJPInVariable")) {
+    			return ag._scopeFrame.resolve(oadvice.getInputVar());
+    		}
+    	}
+    	
+    	scopeFrame = find(variable.declaringScope);	
+    	
+    	if (scopeFrame == null)
+    		__log.error("scopeFrame is NULL!");
+    	else
+    		__log.error("scopeFrame: " + scopeFrame.toString());
+        
         if (scopeFrame == null) return null;
-        return new VariableInstance(scopeFrame.scopeInstanceId, variable);
+        
+        VariableInstance vi = new VariableInstance(scopeFrame.scopeInstanceId, variable); 
+        
+        // AO4ODE: REMOVE Debugging
+        __log.debug("VariableInstance: " + vi);
+        
+        return vi;
     }
 
     public CorrelationSetInstance resolve(OScope.CorrelationSet cset) {

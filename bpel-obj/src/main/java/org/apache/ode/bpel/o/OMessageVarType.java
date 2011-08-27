@@ -36,10 +36,13 @@ public class OMessageVarType extends OVarType {
     private static final long serialVersionUID = 256680050844726425L;
     
     public QName messageType;
-    public final Map<String, Part> parts = new LinkedHashMap<String,Part>();
+    
+    // AO4ODE: Removed final
+    public Map<String, Part> parts = new LinkedHashMap<String,Part>();
 
     /** For doc-lit-like message types , the element type of the only part. */
-    public final OElementVarType docLitType;
+    // AO4ODE: Removed final
+    public OElementVarType docLitType;
 
     public OMessageVarType(OProcess owner, QName messageType, Collection<Part> parts) {
         super(owner);
