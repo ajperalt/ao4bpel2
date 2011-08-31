@@ -354,30 +354,7 @@ class ASSIGN extends ACTIVITY {
         
         ScopeEvent se;
         
-        // AO4ODE: Replace ThisJP* to / from elements with real LValue/RValue
-        if(ocopy.getOwner() instanceof OAdvice
-        		&& ocopy.to.getVariable().name.contains("ThisJPOutVariable")) {
-        	OAdvice oadvice = (OAdvice)ocopy.getOwner();
-        	AspectManager am = AspectManager.getInstance();
-        	ACTIVITYGUARD ag = am.getJPActivity(getBpelRuntimeContext().getPid());
-        	
-        	// Rember part name
-        	String toPartName = ((VariableRef)ocopy.to).part.name;
-        	String toHeaderPart = null;
-        	if(((VariableRef)ocopy.to).headerPart != null)
-        		toHeaderPart = ((VariableRef)ocopy.to).headerPart.name;
-        	
-        	// Create new VariableRef to OutputVar
-        	ocopy.to = new VariableRef(ag._self.getO().getOwner());
-        	((VariableRef)ocopy.to).variable = oadvice.getOutputVar();        	
-        	        	
-        	OMessageVarType toVarType = ((OMessageVarType)oadvice.getOutputVar().type);
-        	
-        	((VariableRef)ocopy.to).part = toVarType.parts.get(toPartName);
-        	
-        	if(toHeaderPart != null)
-        		((VariableRef)ocopy.to).headerPart = ((OMessageVarType)oadvice.getOutputVar().type).parts.get(toHeaderPart); 
-        }
+        
 
         // Check for message to message - copy, we can do this efficiently in
         // the database.
@@ -429,6 +406,44 @@ class ASSIGN extends ACTIVITY {
                 }
                 lvaluePtr = el;
             } else if (ocopy.to instanceof OAssign.VariableRef) {
+            	
+            	// AO4ODE: Replace ThisJP* to / from elements with real LValue/RValue
+                if(ocopy.getOwner() instanceof OAdvice
+                		&& ocopy.to.getVariable().name.contains("ThisJPOutVariable")) {
+                	OAdvice oadvice = (OAdvice)ocopy.getOwner();
+                	AspectManager am = AspectManager.getInstance();
+                	ACTIVITYGUARD ag = am.getJPActivity(getBpelRuntimeContext().getPid());
+                	
+                	// Rember part, headerPart, location
+                	String toPartName = null;
+                	if(((VariableRef)ocopy.to).part != null)
+                		toPartName = ((VariableRef)ocopy.to).part.name;
+                	
+                	String toHeaderPart = null;
+                	if(((VariableRef)ocopy.to).headerPart != null)
+                		toHeaderPart = ((VariableRef)ocopy.to).headerPart.name;
+                	
+                	OExpression toLocation = null;
+                	if(((VariableRef)ocopy.to).location != null)
+                		toLocation = ((VariableRef)ocopy.to).location;
+                	
+                	// Create new VariableRef to OutputVar
+                	ocopy.to = new VariableRef(ag._self.getO().getOwner());
+                	((VariableRef)ocopy.to).variable = oadvice.getOutputVar();        	
+                	
+                	if(toPartName != null) {
+                		OMessageVarType toVarType = ((OMessageVarType)oadvice.getOutputVar().type);        	
+                		((VariableRef)ocopy.to).part = toVarType.parts.get(toPartName);
+                	}
+                	
+                	if(toHeaderPart != null)
+                		((VariableRef)ocopy.to).headerPart = ((OMessageVarType)oadvice.getOutputVar().type).parts.get(toHeaderPart);
+                	
+                	if(toLocation != null)
+                		((VariableRef)ocopy.to).location = toLocation;
+                }
+            	
+            	
                 VariableRef varRef = ((VariableRef) ocopy.to);
                 if (varRef.headerPart != null) headerAssign = true;
                 lvaluePtr = evalQuery(lvalue, varRef.part != null ? varRef.part : varRef.headerPart, varRef.location,
@@ -442,8 +457,9 @@ class ASSIGN extends ACTIVITY {
             } else if (ocopy.to instanceof OAssign.LValueExpression) {
                 LValueExpression lexpr = (LValueExpression) ocopy.to;
                 lexpr.setInsertMissingToData(ocopy.insertMissingToData);
-                lvaluePtr = evalQuery(lvalue, null, lexpr.expression,
-                        new EvaluationContextProxy(lexpr.getVariable(), lvalue));
+                
+                EvaluationContextProxy ecp = new EvaluationContextProxy(lexpr.getVariable(), lvalue);                
+                lvaluePtr = evalQuery(lvalue, null, lexpr.expression,ecp);
                 if (__log.isDebugEnabled())
                     __log.debug("lvaluePtr expr res " + lvaluePtr);
             }
@@ -643,7 +659,8 @@ class ASSIGN extends ACTIVITY {
             if (part.type instanceof OElementVarType) {
                 QName elName = ((OElementVarType) part.type).elementType;
                 // AO4ODE: Debugging
-                __log.debug("Trying to find childByName: " + qualLVal + ", " + elName);
+                __log.debug("Trying to find childByName: " + elName + " with parent " + DOMUtils.domToString(qualLVal) );
+                
                 qualLVal = DOMUtils.findChildByName((Element) qualLVal, elName);
             } else if (part.type == null) {
                 // Special case of header parts never referenced in the WSDL def

@@ -163,25 +163,19 @@ public class XPath10ExpressionRuntime implements ExpressionLanguageRuntime {
         }
     }
 
-    private Context createContext(OXPath10Expression oxpath, EvaluationContext ectx) {
+    private Context createContext(OXPath10Expression oxpath, EvaluationContext ctx) {
     	
-    	// AO4ODE: TODO: Replace ThisJP* in xpath expressions with real names and
-    	// use process context instead of advice context
-    	EvaluationContext ctx = null;
+    	// AO4ODE: TODO: Replace ThisJP* in xpath expressions with real names
     	if(oxpath.getOwner() instanceof OAdvice
     			&& ((OAdvice)oxpath.getOwner()).getOutputVar() != null
     			&& (oxpath.xpath.contains("ThisJPOutVariable"))) {
     		AspectManager am = AspectManager.getInstance();
-    		ACTIVITYGUARD ag = am.getJPActivity(ectx.getProcessId());
+    		ACTIVITYGUARD ag = am.getJPActivity(ctx.getProcessId());
     		OAdvice oadvice = (OAdvice)oxpath.getOwner();
     		Variable jpoutvar = oxpath.vars.get("ThisJPOutVariable");
-    		oxpath.vars.remove(oadvice.getOutputVar().name);
+    		// oxpath.vars.remove("ThisJPOutVariable");
     		oxpath.vars.put(oadvice.getOutputVar().name, jpoutvar);    		
     		oxpath.xpath = oxpath.xpath.replaceAll("ThisJPOutVariable", oadvice.getOutputVar().name);
-    		ctx = ag.getEvaluationContext();
-    	}
-    	else {
-    		ctx = ectx;    		
     	}
     	
     	JaxenContexts bpelSupport = new JaxenContexts(oxpath, _extensionFunctions, ctx);

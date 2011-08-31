@@ -40,7 +40,7 @@ public class OJPVarType extends OMessageVarType {
 		this.docLitType = var.docLitType;
 		this.messageType = var.messageType;
 		this.parts = var.parts;
-		this.xpath = var.xpath;
+		this.xpath = var.xpath;		
 	}
 	
 	public Type getType() {

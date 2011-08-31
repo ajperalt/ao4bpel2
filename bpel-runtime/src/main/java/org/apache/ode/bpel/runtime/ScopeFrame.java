@@ -108,8 +108,9 @@ public class ScopeFrame implements Serializable {
    		
     	ScopeFrame scopeFrame = null;
     	
+    	// AO4ODE:
     	// If the variable belongs to an advice, check if
-    	// it is a "context varieble" and if that is the case
+    	// it is a "context variable" and if that is the case
     	// use process scope to resolve it!
     	if(variable.getOwner() instanceof OAdvice) {
     		
@@ -141,7 +142,7 @@ public class ScopeFrame implements Serializable {
         VariableInstance vi = new VariableInstance(scopeFrame.scopeInstanceId, variable); 
         
         // AO4ODE: REMOVE Debugging
-        __log.debug("VariableInstance: " + vi);
+        __log.debug("Resolved VariableInstance for declaration: " + vi.declaration.name);
         
         return vi;
     }
@@ -304,7 +305,10 @@ public class ScopeFrame implements Serializable {
             return vrp.value;
         } else /* normal variable */ {
         	if(__log.isDebugEnabled())
-        		__log.debug("Write variable: name="+var.declaration + " value="+DOMUtils.domToString(value));
+        		__log.debug("Write variable: name="+var.declaration + " value="+DOMUtils.domToString(value)
+        				// AO4ODE: REMOVE Debugging
+        				+ " scope: " + this.toString()
+        				);
             return context.writeVariable(var, value);
         }
     }
