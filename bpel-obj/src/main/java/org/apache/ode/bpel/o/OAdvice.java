@@ -69,6 +69,11 @@ public class OAdvice extends OProcess {
 	
 	public void setJPInVariable(Variable inputVar) {
 		this.inputVar = inputVar;
+		
+		// Link ThisJPInVariable to inputVar
+		OJPVarType thisjpin = this.getOJPVarType(OJPVarType.Type.IN);
+		// FIXME: What about other types?
+		thisjpin.setMessageVarType((OMessageVarType)this.inputVar.type);
 	}
 	
 	public Variable getInputVar() {
@@ -81,7 +86,7 @@ public class OAdvice extends OProcess {
 		// Link ThisJPOutVariable to outputVar
 		OJPVarType thisjpout = this.getOJPVarType(OJPVarType.Type.OUT);
 		// FIXME: What about other types?
-		thisjpout.setVar((OMessageVarType)this.outputVar.type);		
+		thisjpout.setMessageVarType((OMessageVarType)this.outputVar.type);		
 	}
 	
 	public Variable getOutputVar() {

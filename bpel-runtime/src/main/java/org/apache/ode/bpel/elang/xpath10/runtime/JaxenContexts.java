@@ -152,18 +152,6 @@ class JaxenContexts implements FunctionContext, VariableContext {
             }
         }
         
-        // AO4ODE: REMOVE:
-        /*
-        AspectManager am = AspectManager.getInstance();
-        ACTIVITYGUARD ag = am.getJPActivity(_xpathEvalCtx.getProcessId());        
-        OActivity oactivity = ag.getActivityInfo().getO();
-        if(oactivity.getOwner() instanceof OAdvice) {
-        	OAdvice oadvice = (OAdvice) oactivity.getOwner();
-        	if(localName.equals("ThisJPOutVariable"))
-        		localName = oadvice.getOutputVar().name;        	
-        }
-        */
-
         OXPath10ExpressionBPEL20 expr = (OXPath10ExpressionBPEL20)_oxpath;
         if(expr.isJoinExpression){
             OLink olink = _oxpath.links.get(localName);

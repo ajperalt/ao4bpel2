@@ -258,15 +258,25 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
                     }
                 }
                 
-                // AO4ODE: ThisJPOutVariable has no declaration, so we need
-                // to add it here                
+                // AO4ODE: ThisJP variables have no declaration, so we need
+                // to add them here
+                
+                // ThisJPOutVariable
                 final OScope oscope = _structureStack.topScope();
-                OVarType varType = new OJPVarType(_oprocess, OJPVarType.Type.OUT);
-                OScope.Variable ovar = new OScope.Variable(_oprocess, varType);
-                ovar.name = "ThisJPOutVariable";
-                ovar.declaringScope = oscope;
-                ovar.debugInfo = createDebugInfo(null, "Advice context variable");
-                oscope.addLocalVariable(ovar);
+                OVarType varTypeOut = new OJPVarType(_oprocess, OJPVarType.Type.OUT);
+                OScope.Variable ovarOut = new OScope.Variable(_oprocess, varTypeOut);
+                ovarOut.name = "ThisJPOutVariable";
+                ovarOut.declaringScope = oscope;
+                ovarOut.debugInfo = createDebugInfo(null, "Advice context variable");
+                oscope.addLocalVariable(ovarOut);
+                
+                // ThisJPInVariable
+                OVarType varTypeIn = new OJPVarType(_oprocess, OJPVarType.Type.IN);
+                OScope.Variable ovarIn = new OScope.Variable(_oprocess, varTypeIn);
+                ovarIn.name = "ThisJPInVariable";
+                ovarIn.declaringScope = oscope;
+                ovarIn.debugInfo = createDebugInfo(null, "Advice context variable");
+                oscope.addLocalVariable(ovarIn);
                 
                 _structureStack.topScope().activity = compile(advice.getRootActivity());
             }

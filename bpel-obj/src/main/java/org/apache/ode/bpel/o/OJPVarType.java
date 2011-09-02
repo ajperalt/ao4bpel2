@@ -35,7 +35,8 @@ public class OJPVarType extends OMessageVarType {
 			return null;
 	}
 	
-	public void setVar(OMessageVarType var) {
+	// We need to be able to change this VarType at runtime!
+	public void setMessageVarType(OMessageVarType var) {
 		this.var = var;		
 		this.docLitType = var.docLitType;
 		this.messageType = var.messageType;

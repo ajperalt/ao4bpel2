@@ -226,8 +226,8 @@ class ASSIGN extends ACTIVITY {
         } else if (from instanceof OAssign.Expression) {
             List<Node> l;
             OExpression expr = ((OAssign.Expression) from).expression;
-            try {
-                l = getBpelRuntimeContext().getExpLangRuntime().evaluate(expr, getEvaluationContext());
+            try {            	        	
+            	l = getBpelRuntimeContext().getExpLangRuntime().evaluate(expr, getEvaluationContext());            	
             } catch (EvaluationException e) {
                 String msg = __msgs.msgEvalException(from.toString(), e.getMessage());
                 if (__log.isDebugEnabled()) __log.debug(from + ": " + msg);
@@ -347,6 +347,7 @@ class ASSIGN extends ACTIVITY {
         return retVal;
     }
 
+        
     private void copy(OAssign.Copy ocopy) throws FaultException, ExternalVariableModuleException {
 
         if (__log.isDebugEnabled())
@@ -387,13 +388,54 @@ class ASSIGN extends ACTIVITY {
             }
         } else {
             // Conventional Assignment logic.
+        	
+        	// AO4ODE: ThisJPInVariable
+        	if(ocopy.from instanceof OAssign.VariableRef
+        			&& ((OAssign.VariableRef)ocopy.from).getVariable().name.contains("ThisJPInVariable")) {
+            
+           		OAdvice oadvice = (OAdvice)ocopy.getOwner();
+               	AspectManager am = AspectManager.getInstance();
+               	ACTIVITYGUARD ag = am.getJPActivity(getBpelRuntimeContext().getPid());
+                	
+            	// Rember part, headerPart, location
+            	String fromPartName = null;
+            	if(((VariableRef)ocopy.from).part != null)
+            		fromPartName = ((VariableRef)ocopy.from).part.name;
+            	
+            	String fromHeaderPart = null;
+            	if(((VariableRef)ocopy.from).headerPart != null)
+            		fromHeaderPart = ((VariableRef)ocopy.from).headerPart.name;
+            	
+            	OExpression fromLocation = null;
+            	if(((VariableRef)ocopy.from).location != null)
+            		fromLocation = ((VariableRef)ocopy.from).location;
+            	
+            	// Create new VariableRef 
+            	ocopy.from = new VariableRef(ag._self.getO().getOwner());
+            	if(oadvice.getInputVar() != null) {                	
+            		((VariableRef)ocopy.from).variable = oadvice.getInputVar();
+            	}
+            	
+            	if(fromPartName != null) {
+            		OMessageVarType toVarType = ((OMessageVarType)oadvice.getInputVar().type);        	
+            		((VariableRef)ocopy.from).part = toVarType.parts.get(fromPartName);
+            	}
+            	
+            	if(fromHeaderPart != null)
+            		((VariableRef)ocopy.from).headerPart = ((OMessageVarType)oadvice.getOutputVar().type).parts.get(fromHeaderPart);
+            	
+            	if(fromLocation != null)
+            		((VariableRef)ocopy.from).location = fromLocation;
+            }
+        	
+        	
             Node rvalue = evalRValue(ocopy.from);
             Node lvalue = evalLValue(ocopy.to);
             if (__log.isDebugEnabled()) {
                 __log.debug("lvalue after eval " + lvalue);
                 if (lvalue != null) __log.debug("content " + DOMUtils.domToString(lvalue));
             }
-
+            
             // Get a pointer within the lvalue.
             Node lvaluePtr = lvalue;
             boolean headerAssign = false;
@@ -408,9 +450,9 @@ class ASSIGN extends ACTIVITY {
             } else if (ocopy.to instanceof OAssign.VariableRef) {
             	
             	// AO4ODE: Replace ThisJP* to / from elements with real LValue/RValue
-                if(ocopy.getOwner() instanceof OAdvice
-                		&& ocopy.to.getVariable().name.contains("ThisJPOutVariable")) {
-                	OAdvice oadvice = (OAdvice)ocopy.getOwner();
+                if(ocopy.getOwner() instanceof OAdvice &&
+            		ocopy.to.getVariable().name.contains("ThisJPOutVariable")) {
+            		OAdvice oadvice = (OAdvice)ocopy.getOwner();
                 	AspectManager am = AspectManager.getInstance();
                 	ACTIVITYGUARD ag = am.getJPActivity(getBpelRuntimeContext().getPid());
                 	
@@ -427,9 +469,11 @@ class ASSIGN extends ACTIVITY {
                 	if(((VariableRef)ocopy.to).location != null)
                 		toLocation = ((VariableRef)ocopy.to).location;
                 	
-                	// Create new VariableRef to OutputVar
+                	// Create new VariableRef
                 	ocopy.to = new VariableRef(ag._self.getO().getOwner());
-                	((VariableRef)ocopy.to).variable = oadvice.getOutputVar();        	
+                	if(oadvice.getOutputVar() != null) {                	
+                		((VariableRef)ocopy.to).variable = oadvice.getOutputVar();
+                	}
                 	
                 	if(toPartName != null) {
                 		OMessageVarType toVarType = ((OMessageVarType)oadvice.getOutputVar().type);        	
@@ -441,8 +485,7 @@ class ASSIGN extends ACTIVITY {
                 	
                 	if(toLocation != null)
                 		((VariableRef)ocopy.to).location = toLocation;
-                }
-            	
+                }            	
             	
                 VariableRef varRef = ((VariableRef) ocopy.to);
                 if (varRef.headerPart != null) headerAssign = true;
@@ -681,21 +724,6 @@ class ASSIGN extends ACTIVITY {
         if (expression != null) {
             // Neat little trick....
             try {
-            	// AO4ODE: Replace ThisJPOutVariable with real name at JP
-            	// REMOVE: we do this at XPath10ExpressionRuntime
-            	
-            	/*
-            	if(this.getOAsssign().getOwner() instanceof OAdvice
-            			&& expression instanceof OXPath10Expression) {
-            		OXPath10Expression xpathExpression = (OXPath10Expression)expression;
-            		OAdvice oadvice = (OAdvice)this.getOAsssign().getOwner();
-            		Variable jpOutVar = oadvice.getOutputVar();
-            		String jpOutVariableName = jpOutVar.name;            		
-            		xpathExpression.xpath = xpathExpression.xpath.replaceAll("ThisJPOutVariable", jpOutVariableName);
-            	}
-            	*/
-            	
-            	
                 data = ec.evaluateQuery(data, expression);
             } catch (EvaluationException e) {
                 String msg = __msgs.msgEvalException(expression.toString(), e.getMessage());

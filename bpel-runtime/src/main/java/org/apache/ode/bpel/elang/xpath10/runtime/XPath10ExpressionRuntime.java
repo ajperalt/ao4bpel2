@@ -103,6 +103,7 @@ public class XPath10ExpressionRuntime implements ExpressionLanguageRuntime {
 
     public List evaluate(OExpression cexp, EvaluationContext ctx) throws FaultException, EvaluationException {
         try {
+        	
             XPath compiledXPath = compile((OXPath10Expression) cexp);
             Context context = createContext((OXPath10Expression) cexp, ctx);
 
@@ -163,19 +164,29 @@ public class XPath10ExpressionRuntime implements ExpressionLanguageRuntime {
         }
     }
 
+    // AO4ODE: Replace ThisJP* in expressions
+    private void replaceVariableName(String oldName, String newName, OXPath10Expression expression) {
+    	Variable jpvar = expression.vars.get(oldName);
+    	expression.vars.put(newName, jpvar);    		
+    	expression.xpath = expression.xpath.replaceAll(oldName, newName);
+    }
+    
     private Context createContext(OXPath10Expression oxpath, EvaluationContext ctx) {
     	
     	// AO4ODE: TODO: Replace ThisJP* in xpath expressions with real names
-    	if(oxpath.getOwner() instanceof OAdvice
-    			&& ((OAdvice)oxpath.getOwner()).getOutputVar() != null
-    			&& (oxpath.xpath.contains("ThisJPOutVariable"))) {
+    	if(oxpath.getOwner() instanceof OAdvice) {
     		AspectManager am = AspectManager.getInstance();
     		ACTIVITYGUARD ag = am.getJPActivity(ctx.getProcessId());
     		OAdvice oadvice = (OAdvice)oxpath.getOwner();
-    		Variable jpoutvar = oxpath.vars.get("ThisJPOutVariable");
-    		// oxpath.vars.remove("ThisJPOutVariable");
-    		oxpath.vars.put(oadvice.getOutputVar().name, jpoutvar);    		
-    		oxpath.xpath = oxpath.xpath.replaceAll("ThisJPOutVariable", oadvice.getOutputVar().name);
+    	
+    		if(((OAdvice)oxpath.getOwner()).getOutputVar() != null
+    			&& (oxpath.xpath.contains("ThisJPOutVariable"))) {
+    			replaceVariableName("ThisJPOutVariable", oadvice.getOutputVar().name, oxpath);
+    		}
+    		if(((OAdvice)oxpath.getOwner()).getInputVar() != null
+        		&& (oxpath.xpath.contains("ThisJPInVariable"))) {
+        		replaceVariableName("ThisJPInVariable", oadvice.getInputVar().name, oxpath);
+    		}    		
     	}
     	
     	JaxenContexts bpelSupport = new JaxenContexts(oxpath, _extensionFunctions, ctx);
