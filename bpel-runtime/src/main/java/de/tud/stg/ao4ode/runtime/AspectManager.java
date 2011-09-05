@@ -3,6 +3,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,13 +14,20 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.compiler.bom.CreateInstanceActivity;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
+import org.apache.ode.bpel.o.OAssign;
 import org.apache.ode.bpel.o.OInvoke;
 import org.apache.ode.bpel.o.OPointcut;
 import org.apache.ode.bpel.o.OProceed;
+import org.apache.ode.bpel.o.OMessageVarType.Part;
+import org.apache.ode.bpel.o.OScope.Variable;
 import org.apache.ode.bpel.o.OSequence;
 import org.apache.ode.bpel.runtime.ACTIVITY;
 import org.apache.ode.bpel.runtime.ACTIVITYGUARD;
 import org.apache.ode.bpel.runtime.ScopeFrame;
+import org.apache.ode.utils.DOMUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Text;
 
 import de.tud.stg.ao4ode.aspectmanager.AspectConfImpl;
 import de.tud.stg.ao4ode.aspectmanager.AspectStore;
@@ -79,7 +87,8 @@ public class AspectManager {
 							
 							OAdvice oAdvice = aspect.getOAspect().getOAdvice();
 							oAdvice.setProcessId(pid);
-							oAdvice.setJPActivity(oActivity);							
+							oAdvice.setJPActivity(oActivity);
+							oAdvice.setPointcut(pointcut);
 							if(oActivity instanceof OInvoke) {
 								OInvoke oinvoke = (OInvoke)oActivity;
 								oAdvice.setJPInVariable(oinvoke.inputVar);
@@ -179,4 +188,39 @@ public class AspectManager {
 		return jpActivities.get(pid);
 	}
 
+	public static String getThisJPActivityValue(OAdvice advice, ACTIVITYGUARD ag,
+			String partName) {
+		
+		String value = "Unknown part \"" + partName + "\" for ThisJPAcitivity \"" + ag.getActivityInfo().getO().name + "\"";
+		if(partName.equals("name")) {
+			value = ag.getActivityInfo().getO().name;					
+		}
+		else if(partName.equals("process")) {
+			value = ag.getActivityInfo().getO().getOwner().processName;
+		}
+		else if(partName.equals("type")) {
+			value = ag.getActivityInfo().getO().getType();
+		}
+		else if(partName.equals("partnerlink")) {
+			if(ag.getActivityInfo().getO() instanceof OInvoke) {        				
+				value = ((OInvoke)ag.getActivityInfo().getO()).partnerLink.name;
+			}
+		}
+		else if(partName.equals("porttype")) {
+			if(ag.getActivityInfo().getO() instanceof OInvoke) {
+				value = ((OInvoke)ag.getActivityInfo().getO()).partnerLink.partnerRolePortType.getQName().toString();
+			}
+		}
+		else if(partName.equals("operation")) {
+			if(ag.getActivityInfo().getO() instanceof OInvoke) {        				
+				value = ((OInvoke)ag.getActivityInfo().getO()).operation.getName();
+			}
+		}
+		else if(partName.equals("pointcut")) {
+			return advice.getPointcut().getQuery();
+		}
+		
+		return value;
+	}
+	
 }

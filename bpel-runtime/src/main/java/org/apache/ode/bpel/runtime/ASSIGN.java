@@ -32,15 +32,19 @@ import org.apache.ode.bpel.o.OAssign;
 import org.apache.ode.bpel.o.OAssign.DirectRef;
 import org.apache.ode.bpel.o.OAssign.LValueExpression;
 import org.apache.ode.bpel.o.OAssign.PropertyRef;
+import org.apache.ode.bpel.o.OAssign.RValue;
 import org.apache.ode.bpel.o.OAssign.VariableRef;
 import org.apache.ode.bpel.o.OElementVarType;
 import org.apache.ode.bpel.o.OExpression;
+import org.apache.ode.bpel.o.OInvoke;
+import org.apache.ode.bpel.o.OJPVarType;
 import org.apache.ode.bpel.o.OLink;
 import org.apache.ode.bpel.o.OMessageVarType;
 import org.apache.ode.bpel.o.OMessageVarType.Part;
 import org.apache.ode.bpel.o.OProcess.OProperty;
 import org.apache.ode.bpel.o.OScope;
 import org.apache.ode.bpel.o.OScope.Variable;
+import org.apache.ode.bpel.o.OVarType;
 import org.apache.ode.bpel.runtime.channels.FaultData;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.utils.Namespaces;
@@ -163,7 +167,7 @@ class ASSIGN extends ACTIVITY {
                 lval = fetchVariableData(lvar, true);
         }
         return lval;
-    }
+    }    
 
     /**
      * Get the r-value. There are several possibilities:
@@ -191,6 +195,7 @@ class ASSIGN extends ACTIVITY {
      * @throws IllegalStateException
      *             DOCUMENTME
      */
+    // AO4ODE: Evaluate using a different runtime context
     private Node evalRValue(OAssign.RValue from) throws FaultException, ExternalVariableModuleException {
         if (__log.isDebugEnabled())
             __log.debug("Evaluating FROM expression \"" + from + "\".");
@@ -204,8 +209,26 @@ class ASSIGN extends ACTIVITY {
             retVal = DOMUtils.findChildByName((Element)data, dref.elName);
         } else if (from instanceof OAssign.VariableRef) {
             OAssign.VariableRef varRef = (OAssign.VariableRef) from;
-            sendVariableReadEvent(_scopeFrame.resolve(varRef.variable));
-            Node data = fetchVariableData(_scopeFrame.resolve(varRef.variable), false);
+            VariableInstance varInstance = _scopeFrame.resolve(varRef.variable);
+            sendVariableReadEvent(varInstance);
+            Node data = fetchVariableData(varInstance, false);
+            
+            // AO4ODE: Set correct part type if missing
+            if(varRef.part.type instanceof OElementVarType &&
+            		((OElementVarType) varRef.part.type).elementType.getLocalPart().equals("NullElement")) {
+            	
+            	if(varRef.part.name != null) {
+            		OMessageVarType toVarType = ((OMessageVarType)varInstance.declaration.type);        	
+            		varRef.part = toVarType.parts.get(varRef.part.name);
+            	}
+            	
+            	if(varRef.headerPart != null && varRef.headerPart.name != null)
+            		varRef.headerPart = ((OMessageVarType)varInstance.declaration.type).parts.get(varRef.headerPart.name); 
+            	            	
+            	varRef.variable = varInstance.declaration;
+
+            }
+            
             retVal = evalQuery(data, varRef.part != null ? varRef.part : varRef.headerPart, varRef.location, getEvaluationContext());
         } else if (from instanceof OAssign.PropertyRef) {
             OAssign.PropertyRef propRef = (OAssign.PropertyRef) from;
@@ -428,8 +451,23 @@ class ASSIGN extends ACTIVITY {
             		((VariableRef)ocopy.from).location = fromLocation;
             }
         	
-        	
-            Node rvalue = evalRValue(ocopy.from);
+        	// AO4ODE: ThisJPActivity
+        	if(ocopy.from instanceof OAssign.VariableRef
+        			&& ((OAssign.VariableRef)ocopy.from).getVariable().name.contains("ThisJPActivity")) {
+        		OAssign.VariableRef ref = (OAssign.VariableRef)ocopy.from;
+        		
+        		ACTIVITYGUARD ag = AspectManager.getInstance().getJPActivity(getBpelRuntimeContext().getPid());
+        		Document doc = DOMUtils.newDocument();
+    			Element element = doc.createElement("root");
+    			doc.appendChild(element);
+    			Text value = doc.createTextNode(AspectManager.getThisJPActivityValue((OAdvice)this.getActivityInfo().getO().getOwner(),
+    					ag, ref.part.name));        		
+        		element.appendChild(value);
+    			ocopy.from = new OAssign.Literal(this.getOAsssign().getOwner(), doc);
+    			
+        	}
+        	        	
+        	Node rvalue = evalRValue(ocopy.from);
             Node lvalue = evalLValue(ocopy.to);
             if (__log.isDebugEnabled()) {
                 __log.debug("lvalue after eval " + lvalue);
@@ -546,7 +584,9 @@ class ASSIGN extends ACTIVITY {
         sendEvent(se);
     }
 
-    @Override
+    
+
+	@Override
     Node fetchVariableData(VariableInstance variable, boolean forWriting)
             throws FaultException {
         try {
@@ -695,15 +735,13 @@ class ASSIGN extends ACTIVITY {
     private Node evalQuery(Node data, OMessageVarType.Part part,
                            OExpression expression, EvaluationContext ec) throws FaultException {
         assert data != null;
-
+               
         if (part != null) {
             QName partName = new QName(null, part.name);
             Node qualLVal = DOMUtils.findChildByName((Element) data, partName);
             if (part.type instanceof OElementVarType) {
                 QName elName = ((OElementVarType) part.type).elementType;
-                // AO4ODE: Debugging
-                __log.debug("Trying to find childByName: " + elName + " with parent " + DOMUtils.domToString(qualLVal) );
-                
+                __log.debug("Trying to find childByName: " + elName + " with parent " + DOMUtils.domToString(qualLVal) );                
                 qualLVal = DOMUtils.findChildByName((Element) qualLVal, elName);
             } else if (part.type == null) {
                 // Special case of header parts never referenced in the WSDL def

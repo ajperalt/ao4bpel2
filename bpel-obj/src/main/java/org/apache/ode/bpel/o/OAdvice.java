@@ -16,6 +16,9 @@ public class OAdvice extends OProcess {
 	private OActivity jpActivity;
 	private Long processId;
 	
+	// Engine sets this to the currently matched pointcut for this advice
+	private OPointcut pointcut;
+	
 	public OAdvice(String bpelVersion) {
 		super(bpelVersion);
 	}
@@ -60,7 +63,7 @@ public class OAdvice extends OProcess {
 	}
 
 	public void setJPActivity(OActivity oactivity) {
-		this.jpActivity = oactivity;
+		this.jpActivity = oactivity;		
 	}
 	
 	public OActivity getJPActivity() {
@@ -99,6 +102,14 @@ public class OAdvice extends OProcess {
 	
 	public long getProcessId() {
 		return this.processId;
+	}
+
+	public void setPointcut(OPointcut pointcut) {
+		this.pointcut = pointcut;
+	}
+	
+	public OPointcut getPointcut() {
+		return this.pointcut;
 	}
 
 }

@@ -307,6 +307,17 @@ public abstract class BpelCompiler implements CompilerContext {
             if (var != null)
                 return var;
         }
+        
+        // AO4ODE: ThisJP
+        if(varName.startsWith("ThisJP(")) {
+        	OVarType varTypeJPActivity = new OJPVarType(_oprocess, OJPVarType.Type.META);
+            OScope.Variable ovarJPActivity = new OScope.Variable(_oprocess, varTypeJPActivity);
+            ovarJPActivity.name = varName;            
+            ovarJPActivity.declaringScope = _structureStack.topScope();
+            ovarJPActivity.debugInfo = createDebugInfo(null, "Advice context variable ThisJP");
+        	return ovarJPActivity;
+        }
+        
         // A "real" variable couldn't be found, checking if we're dealing with a
         // process custom property
         if (_customProcessProperties != null && _customProcessProperties.get(QName.valueOf(varName)) != null) {
@@ -451,7 +462,7 @@ public abstract class BpelCompiler implements CompilerContext {
         // AO4ODE: don't complain about ThisJP variables
         if (part == null)
         	if(var.name.contains("ThisJP")) {
-            	part = new OMessageVarType.Part(var.getOwner(), partname, new OElementVarType(var.getOwner(), new QName(null, "NullElement")));
+        		part = new OMessageVarType.Part(var.getOwner(), partname, new OElementVarType(var.getOwner(), new QName(null, "NullElement")));        		
             }
             else
             	throw new CompilationException(__cmsgs.errUndeclaredMessagePart(var.name,

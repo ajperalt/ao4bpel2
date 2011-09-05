@@ -54,6 +54,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * XPath 1.0 Expression Language run-time subsytem.
@@ -179,6 +181,15 @@ public class XPath10ExpressionRuntime implements ExpressionLanguageRuntime {
     		ACTIVITYGUARD ag = am.getJPActivity(ctx.getProcessId());
     		OAdvice oadvice = (OAdvice)oxpath.getOwner();
     	
+    		// AO4ODE: TODO: Xpath for ThisJP
+    		if(oxpath.xpath.contains("ThisJP(")) {
+    			Pattern thisProcessPattern = Pattern.compile("ThisJP\\((.*?)\\)");
+    			Matcher m = thisProcessPattern.matcher(oxpath.xpath);
+    			while (m.find()) {
+    			    String name = m.group(1);
+    			    replaceVariableName("ThisJP(" + name + ")", name, oxpath);
+    			}
+    		}
     		if(((OAdvice)oxpath.getOwner()).getOutputVar() != null
     			&& (oxpath.xpath.contains("ThisJPOutVariable"))) {
     			replaceVariableName("ThisJPOutVariable", oadvice.getOutputVar().name, oxpath);

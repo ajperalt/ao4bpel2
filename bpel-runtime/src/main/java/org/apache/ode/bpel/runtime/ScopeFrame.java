@@ -24,11 +24,13 @@ import org.apache.ode.bpel.common.FaultException;
 import org.apache.ode.bpel.evt.ScopeEvent;
 import org.apache.ode.bpel.iapi.BpelEngineException;
 import org.apache.ode.bpel.o.OAdvice;
+import org.apache.ode.bpel.o.OConstantVarType;
 import org.apache.ode.bpel.o.OElementVarType;
 import org.apache.ode.bpel.o.OMessageVarType;
 import org.apache.ode.bpel.o.OPartnerLink;
 import org.apache.ode.bpel.o.OScope;
 import org.apache.ode.bpel.o.OMessageVarType.Part;
+import org.apache.ode.bpel.o.OScope.Variable;
 import org.apache.ode.bpel.runtime.BpelRuntimeContext.ValueReferencePair;
 import org.apache.ode.bpel.runtime.channels.FaultData;
 import org.apache.ode.utils.DOMUtils;
@@ -37,12 +39,16 @@ import org.apache.ode.bpel.evar.IncompleteKeyException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import de.tud.stg.ao4ode.runtime.AspectManager;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
@@ -118,9 +124,14 @@ public class ScopeFrame implements Serializable {
     		AspectManager am = AspectManager.getInstance();
     		ACTIVITYGUARD ag = am.getJPActivity(oadvice.getProcessId());
     		
-    		if(variable.name.startsWith("ThisJP.")) {
-    			variable.name = variable.name.substring(variable.name.indexOf('.'));
-    			return ag._scopeFrame.resolve(variable);
+    		if(variable.name.startsWith("ThisJP(")) {
+    			Pattern thisProcessPattern = Pattern.compile("ThisJP\\((.*?)\\)");
+    			Matcher m = thisProcessPattern.matcher(variable.name);
+    			while (m.find()) {
+    			    String name = m.group(1);
+    			    variable = ag._scopeFrame.oscope.getVisibleVariable(name);
+    			    return ag._scopeFrame.resolve(variable);
+    			}
     		}
     		else if(variable.name.equals("ThisJPOutVariable")) {
     			return ag._scopeFrame.resolve(oadvice.getOutputVar());    			
@@ -229,7 +240,7 @@ public class ScopeFrame implements Serializable {
             }
         } else /* not external */ {
             Node data = brc.readVariable(variable.scopeInstance,variable.declaration.name, forWriting);
-            if (data == null) {
+            if (data == null) {            	
                 // Special case of messageType variables with no part
                 if (variable.declaration.type instanceof OMessageVarType) {
                     OMessageVarType msgType = (OMessageVarType) variable.declaration.type;
@@ -307,7 +318,7 @@ public class ScopeFrame implements Serializable {
         	if(__log.isDebugEnabled())
         		__log.debug("Write variable: name="+var.declaration + " value="+DOMUtils.domToString(value)
         				// AO4ODE: REMOVE Debugging
-        				+ " scope: " + this.toString()
+        				+ " scope: " + this.toString() + ", Context: " + context
         				);
             return context.writeVariable(var, value);
         }

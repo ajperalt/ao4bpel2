@@ -14,7 +14,7 @@ public class OJPVarType extends OMessageVarType {
 	OMessageVarType var = null;
 	
 	public enum Type {
-	    OUT, IN 
+	    OUT, IN, META
 	}
 	
 	private Type type;

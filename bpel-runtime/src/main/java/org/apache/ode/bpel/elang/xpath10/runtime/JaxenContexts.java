@@ -39,8 +39,11 @@ import org.apache.ode.bpel.explang.EvaluationContext;
 import org.apache.ode.bpel.explang.EvaluationException;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
+import org.apache.ode.bpel.o.OAssign;
+import org.apache.ode.bpel.o.OConstantVarType;
 import org.apache.ode.bpel.o.OLink;
 import org.apache.ode.bpel.o.OMessageVarType;
+import org.apache.ode.bpel.o.OMessageVarType.Part;
 import org.apache.ode.bpel.o.OProcess;
 import org.apache.ode.bpel.o.OScope;
 import org.apache.ode.bpel.o.OVarType;
@@ -59,6 +62,7 @@ import org.jaxen.XPathFunctionContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 
 import de.tud.stg.ao4ode.runtime.AdviceActivity;
 import de.tud.stg.ao4ode.runtime.AspectManager;
@@ -173,6 +177,13 @@ class JaxenContexts implements FunctionContext, VariableContext {
                 partName = localName.substring(dotloc + 1);
             }
             OScope.Variable variable = _oxpath.vars.get(varName);
+            
+            // AO4ODE: ThisJPActivity
+            if("ThisJPActivity".equals(varName)) {
+            	ACTIVITYGUARD ag = AspectManager.getInstance().getJPActivity(_xpathEvalCtx.getProcessId());            	
+            	return AspectManager.getThisJPActivityValue((OAdvice)_oxpath.getOwner(), ag, partName);
+            }
+            
             OMessageVarType.Part part = partName == null ? null : ((OMessageVarType)variable.type).parts.get(partName);
 
             try{
@@ -182,6 +193,7 @@ class JaxenContexts implements FunctionContext, VariableContext {
                             new FaultException(variable.getOwner().constants.qnSelectionFailure,
                                     "Unknown variable " + localName));
                 OVarType type = variable.type;
+
                 if (type instanceof OMessageVarType) {
                     OMessageVarType.Part typePart = ((OMessageVarType)type).parts.get(partName);
                     if (typePart == null) {

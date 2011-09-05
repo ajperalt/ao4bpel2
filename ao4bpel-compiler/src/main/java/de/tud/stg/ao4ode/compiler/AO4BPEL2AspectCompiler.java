@@ -267,7 +267,7 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
                 OScope.Variable ovarOut = new OScope.Variable(_oprocess, varTypeOut);
                 ovarOut.name = "ThisJPOutVariable";
                 ovarOut.declaringScope = oscope;
-                ovarOut.debugInfo = createDebugInfo(null, "Advice context variable");
+                ovarOut.debugInfo = createDebugInfo(null, "Advice context variable ThisJPOutVariable");
                 oscope.addLocalVariable(ovarOut);
                 
                 // ThisJPInVariable
@@ -275,8 +275,16 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
                 OScope.Variable ovarIn = new OScope.Variable(_oprocess, varTypeIn);
                 ovarIn.name = "ThisJPInVariable";
                 ovarIn.declaringScope = oscope;
-                ovarIn.debugInfo = createDebugInfo(null, "Advice context variable");
+                ovarIn.debugInfo = createDebugInfo(null, "Advice context variable ThisJPInVariable");
                 oscope.addLocalVariable(ovarIn);
+                
+                // ThisJPActivity
+                OVarType varTypeJPActivity = new OJPVarType(_oprocess, OJPVarType.Type.META);
+                OScope.Variable ovarJPActivity = new OScope.Variable(_oprocess, varTypeJPActivity);
+                ovarJPActivity.name = "ThisJPActivity";
+                ovarJPActivity.declaringScope = oscope;
+                ovarJPActivity.debugInfo = createDebugInfo(null, "Advice context variable ThisJPActivity");
+                oscope.addLocalVariable(ovarJPActivity);
                 
                 _structureStack.topScope().activity = compile(advice.getRootActivity());
             }

@@ -269,7 +269,7 @@ DeploymentService.listProcesses.callback = null;
 // AO4ODE:
 
 DeploymentService.undeployAspect =
-    function undeploy(/* QName */ _packageName)
+    function undeployAspect(/* QName */ _packageName)
     {
         var isAsync, request, response, resultValue;
         
@@ -278,7 +278,7 @@ DeploymentService.undeployAspect =
         request = 
             '<p:undeployAspect xmlns:p="http://www.apache.org/ode/pmapi">' +
                 (_packageName == null ? '' : '<packageName>' + this._encodeXML(_packageName) + '</packageName>') +
-            '</p:undeploy>' ;
+            '</p:undeployAspect>' ;
         
         if (isAsync) {
             try {
