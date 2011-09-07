@@ -82,7 +82,6 @@ import org.apache.ode.utils.fs.TempFileManager;
 
 import de.tud.stg.ao4ode.aspectmanager.AspectStore;
 import de.tud.stg.ao4ode.aspectmanager.AspectStoreImpl;
-import de.tud.stg.ao4ode.aspectmanager.AspectStoreListenerImpl;
 import de.tud.stg.ao4ode.runtime.AspectManager;
 import de.tud.stg.ao4ode.runtime.DynamicFactsBpelEventListener;
 
@@ -242,25 +241,16 @@ public class ODEServer {
     
     // AO4ODE: register history listeners
     private void initAO4ODE(AspectStore aspectstore) {
-    	// TODO: REMOVE
-    	/*
-    	BpelHistory history = BpelHistory.getInstance();
-    	BpelLogHistoryListener logHistory = new BpelLogHistoryListener();
-    	BpelPrologHistoryListener prologHistory = new BpelPrologHistoryListener(); 
-    	history.addListener(logHistory);    	
-    	history.addListener(prologHistory);
-    	*/
     	
     	// Register BpelEventListenr to collect dynamic facts
     	DynamicFactsBpelEventListener dynFactsListener = new DynamicFactsBpelEventListener();
     	_bpelServer.registerBpelEventListener(dynFactsListener);
     	
-    	
-    	
     	// Initialize Aspect Manager
     	AspectManager am = AspectManager.getInstance();
     	am.setDepoloymentDir(_workRoot);
     	am.setAspectStore(aspectstore);
+    	am.setProcessStore(getProcessStore());
     	
 	}
 
@@ -501,14 +491,6 @@ public class ODEServer {
     // AO4ODE: Inititialize Aspect Store
     protected void initAspectStore(EndpointReferenceContext eprContext) {
         _aspectstore = createAspectStore(eprContext, _db.getDataSource());
-        _aspectstore.registerListener(new AspectStoreListenerImpl());
-        /*
-        _aspectstore.setDeployDir(
-        		_odeConfig.getDeployDir() != null ?
-	        		new File(_odeConfig.getAspectDeployDir()) :
-	        		new File(_workRoot, "aspects"));
-        _aspectstore.setConfigDir(_configRoot);
-        */
     }
 
     protected ProcessStoreImpl createProcessStore(EndpointReferenceContext eprContext, DataSource ds) {

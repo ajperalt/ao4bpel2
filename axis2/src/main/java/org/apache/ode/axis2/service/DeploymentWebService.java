@@ -66,6 +66,7 @@ import org.apache.ode.utils.fs.FileUtils;
 import org.apache.ode.utils.Namespaces;
 
 import de.tud.stg.ao4ode.aspectmanager.AspectStore;
+import de.tud.stg.ao4ode.runtime.AspectManager;
 
 /**
  * Axis wrapper for process deployment.
@@ -208,7 +209,7 @@ public class DeploymentWebService {
                         //    throw new OdeFault("The deployment doesn't appear to contain a deployment " +
                         //            "descriptor in its root directory named deploy.xml, aborting.");
 
-                        Collection<QName> deployed = _aspectstore.deployAspect(dest, scope);
+                        Collection<QName> deployed = _aspectstore.deployAspect(dest, scope, AspectManager.getInstance().getProcessStore());
 
                         File deployedMarker = new File(_deployPath, dest.getName() + ".deployed");
                         deployedMarker.createNewFile();

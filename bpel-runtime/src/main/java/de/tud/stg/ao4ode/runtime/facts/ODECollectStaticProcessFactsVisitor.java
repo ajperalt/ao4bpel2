@@ -56,6 +56,7 @@ public class ODECollectStaticProcessFactsVisitor implements ASTVisitor {
 	}
 
 	public void visit(OSequence osequence) {
+		visit((OActivity)osequence);
 		for(OActivity a : osequence.sequence) {
 			a.accept(this);
 		}
@@ -84,8 +85,9 @@ public class ODECollectStaticProcessFactsVisitor implements ASTVisitor {
 		if(actId != null) {
 			log.debug("Adding static ACTIVITY fact: " + oactivity.toString() + " (" + oactivity.getXPath() + ")");
 			
-			String parentId = "-1";
-			if(oactivity.getParent() != null) {
+			// If the activity has no parent, is must be the root element
+			String parentId = "process";
+			if(oactivity.getParent() != null && oactivity.getParent().getXPath() != null) {
 				parentId = oactivity.getParent().getXPath(); 
 			}
 

@@ -34,7 +34,7 @@ public class BpelFactsManager {
 		engine.addRule("lastevent(X):-event(ProcessID,_,T1,_,_,X,_,'ActivityEnabledEvent',_),event(ProcessID,_,T2,_,_,Y,_,'ActivityEnabledEvent',_),Y=/=X,T1>T2.");
 		engine.addRule("lastactivity(X):-event(ProcessID,_,_,_,_,X,_,'ActivityEnabledEvent',_),lastevent(X).");
 		
-		engine.addRule("xpath(X):-event(ProcessID,_,_,_,X,_,_,'ActivityEnabledEvent',_),not(event(ProcessID,_,_,_,X,_,_,'ActivityExecStartEvent',_)).");
+		engine.addRule("xpath(X):-event(ProcessID,X,_,_,_,_,_,'ActivityEnabledEvent',_),not(event(ProcessID,X,_,_,_,_,_,'ActivityExecStartEvent',_)).");
 	}
 		
 	public static BpelFactsManager getInstance() {				

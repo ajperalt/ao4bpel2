@@ -31,8 +31,10 @@ import org.apache.ode.store.DeploymentUnitDir;
 import org.apache.ode.store.Messages;
 import org.apache.ode.store.ProcessConfImpl;
 import org.apache.ode.store.DeploymentUnitDir.CBPInfo;
+import org.apache.ode.store.ProcessStoreImpl;
 import org.apache.ode.utils.msg.MessageBundle;
 
+import de.tud.stg.ao4ode.aspectmanager.AspectDeploymentUnitDir;
 import de.tud.stg.ao4ode.aspectmanager.AspectDeploymentUnitDir.CBAInfo;
 
 public class AspectStoreImpl implements AspectStore {
@@ -46,7 +48,7 @@ public class AspectStoreImpl implements AspectStore {
     private Map<String, AspectDeploymentUnitDir> _deploymentUnits = new HashMap<String, AspectDeploymentUnitDir>();
 
     private EndpointReferenceContext eprContext;
-
+    
     protected File _deployDir;
 
     protected File _configDir;
@@ -60,7 +62,7 @@ public class AspectStoreImpl implements AspectStore {
         this.props = props;
     }
 	
-	public Collection<QName> deployAspect(File deploymentUnitDirectory, String scope) {
+	public Collection<QName> deployAspect(File deploymentUnitDirectory, String scope, ProcessStoreImpl processStore) {
 		
 		__log.debug("Deploying Aspect package: " + deploymentUnitDirectory.getName());
 		
@@ -70,40 +72,31 @@ public class AspectStoreImpl implements AspectStore {
 		// Compile all aspects
 		try {
 			__log.debug("Compiling deployment unit");
-            du.compile(scope);
+            du.compile(scope, processStore);
         } catch (CompilationException ce) {
             String errmsg = __msgs.msgDeployFailCompileErrors(ce);
             __log.error(errmsg, ce);
             throw new ContextException(errmsg, ce);
         }
         
-        // Add compiled aspects to aspect manager
-        __log.debug("Scanning for compiled deployment units");
+        __log.debug("Scanning for compiled aspects");
         du.scan();
-       
-
-        /* WORKING, but no DD */
-        // Add compiled DU to store
-        /*
-        _deploymentUnits.put(du.getName(), du);
         
-        // TODO: Foreach aspect defined in DD...
+        /* Add all compiled aspect to store
+        _deploymentUnits.put(du.getName(), du);
         Collection<QName> aspectIds = du.getAspects();
         for(QName aspectId : aspectIds) {
         	OAspect oaspect = du.getAspect(aspectId);
         	AspectInfo aspect = new AspectInfo(oaspect, deployDate);
         	_aspects.put(aspectId, aspect);
         }
-        */
-        
-        /* NEW: USE DD FOR ASPECTS */
-        
+        */        
+        /* NEW: Use DD for aspect deployment */        
         final DeployAspectDocument dd = du.getDeploymentDescriptor();
         final ArrayList<AspectConfImpl> aspects = new ArrayList<AspectConfImpl>();
         Collection<QName> deployed;
 
         // _rw.writeLock().lock();
-
         try {
             if (_deploymentUnits.containsKey(du.getName())) {
                 String errmsg = __msgs.msgDeployFailDuplicateDU(du.getName());
@@ -157,10 +150,8 @@ public class AspectStoreImpl implements AspectStore {
 		return _aspects.values();
 	}
 
-	// FIXME: return a version number
 	public long getCurrentVersion() {
-		// UUID uuid = UUID.randomUUID();
-		// return uuid.getMostSignificantBits();
+		// No versioning support for aspects
 		return 0;
     }
 	
@@ -206,7 +197,6 @@ public class AspectStoreImpl implements AspectStore {
     }
 
     private QName toAid(QName aspectType, long version) {
-        // return new QName(aspectType.getNamespaceURI(), aspectType.getLocalPart() + "-" + version);
     	return new QName(aspectType.getNamespaceURI(), aspectType.getLocalPart());
     }
 	
@@ -226,14 +216,12 @@ public class AspectStoreImpl implements AspectStore {
 		return null;
 	}
 
-	public void registerListener(AspectStoreListener psl) {
-		// TODO Auto-generated method stub
-		
+	public void registerListener(AspectStoreListener asl) {
+		_listeners.add(asl);		
 	}
 
-	public void unregisterListener(ProcessStoreListener psl) {
-		// TODO Auto-generated method stub
-		
+	public void unregisterListener(ProcessStoreListener asl) {
+		_listeners.remove(asl);
 	}
 	
 	protected void fireEvent(AspectStoreEvent ase) {

@@ -96,7 +96,8 @@ public class DeploymentUnitDir {
         }
     };
 
-    private static final FileFilter _bpelFilter = new FileFilter() {
+    // AO4ODE: changed visibility to public
+    public static final FileFilter _bpelFilter = new FileFilter() {
         public boolean accept(File path) {
             return path.getName().endsWith(".bpel") && path.isFile();
         }

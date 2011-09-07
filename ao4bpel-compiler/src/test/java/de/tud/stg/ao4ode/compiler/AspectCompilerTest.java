@@ -1,7 +1,10 @@
 package de.tud.stg.ao4ode.compiler;
 
+import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import junit.framework.TestCase;
@@ -12,6 +15,8 @@ import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.bpel.o.OInvoke;
 import org.apache.ode.bpel.o.OPointcut;
 import org.apache.ode.bpel.o.OProcess;
+import org.apache.ode.store.DeploymentUnitDir;
+import org.apache.ode.utils.fs.FileUtils;
 
 import de.tud.stg.ao4ode.compiler.AO4BPEL2AspectCompiler;
 
@@ -19,11 +24,12 @@ public class AspectCompilerTest extends TestCase  {
 	
 	private static final Log log = LogFactory.getLog(AspectCompilerTest.class);
 	
+	/*
 	public void testCompileAspect() {
 		try {
 						
 			URL aspectURL = getClass().getResource("IncreaseCounter.aspect");
-			AO4BPEL2AspectCompiler compiler = new AO4BPEL2AspectCompiler();
+			AO4BPEL2AspectCompiler compiler = new AO4BPEL2AspectCompiler(null);
 			OAspect oaspect = compiler.compileAspect(aspectURL, "true.");
 		    
 			System.out.println("Aspect name: " + oaspect.aspectName);			
@@ -36,6 +42,7 @@ public class AspectCompilerTest extends TestCase  {
 		}
 		
 	}
+	*/
 	
 	/* TODO: Remove
 	public void testAspectManager() {
@@ -102,5 +109,25 @@ public class AspectCompilerTest extends TestCase  {
 		}
 	}
 	*/
+	
+	public void testXPath() {
+		try {
+			AO4BPEL2AspectCompiler compiler = new AO4BPEL2AspectCompiler(null);
+			OProcess oprocess = new OProcess("2.0");
+			OPointcut opointcut = new OPointcut(oprocess, "testPointcut", "xpath", "//bpel:invoke");
+			
+			System.err.println("Before: " + opointcut);
+			
+			List<File> bpels = FileUtils.directoryEntriesInPath(new File("/home/sander/bin/tomcat/webapps/ao4ode/WEB-INF/processes/HelloWorld3"),
+					DeploymentUnitDir._bpelFilter);
+			
+			compiler.replaceXPathPointcuts(opointcut, bpels);
+			
+			System.err.println("After: " + opointcut);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
 	
 }

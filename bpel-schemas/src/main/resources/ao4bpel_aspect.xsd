@@ -9,7 +9,7 @@
     <xsd:annotation>
         <xsd:documentation>
             Schema for AO4BPEL 2.0 Aspects
-            Last modified date: 28th June, 2011
+            Last modified date: 05th September, 2011
         </xsd:documentation>
     </xsd:annotation>
     
@@ -37,8 +37,10 @@
     </xsd:complexType>
     
     <xsd:complexType name="tPointcuts">
-		<xsd:sequence>
-			<xsd:element name="pointcut" type="xsd:string"/>
+		<xsd:sequence>			
+			<xsd:complexType name="pointcut" type="xsd:string">
+				<xsd:attribute name="language" type="xsd:string"/>				
+			</xsd:complexType>
 		</xsd:sequence>
 	</xsd:complexType>
     

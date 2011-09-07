@@ -3,29 +3,39 @@ package de.tud.stg.ao4ode.compiler;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
+import org.apache.ode.bpel.compiler.BpelCompiler;
 import org.apache.ode.bpel.compiler.BpelCompiler20;
 import org.apache.ode.bpel.compiler.DefaultResourceFinder;
 import org.apache.ode.bpel.compiler.ResourceFinder;
 import org.apache.ode.bpel.compiler.api.CompilationException;
 import org.apache.ode.bpel.compiler.api.CompilationMessage;
-import org.apache.ode.bpel.compiler.bom.Activity;
 import org.apache.ode.bpel.compiler.bom.Bpel11QNames;
 import org.apache.ode.bpel.compiler.bom.Bpel20QNames;
-import org.apache.ode.bpel.compiler.bom.BpelObject;
 import org.apache.ode.bpel.compiler.bom.Import;
 import org.apache.ode.bpel.compiler.bom.Property;
 import org.apache.ode.bpel.compiler.bom.PropertyAlias;
 import org.apache.ode.bpel.compiler.wsdl.Definition4BPEL;
-import org.apache.ode.bpel.o.DebugInfo;
-import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.bpel.o.OConstantVarType;
@@ -34,12 +44,21 @@ import org.apache.ode.bpel.o.OJPVarType;
 import org.apache.ode.bpel.o.OPointcut;
 import org.apache.ode.bpel.o.OScope;
 import org.apache.ode.bpel.o.OVarType;
+import org.apache.ode.store.DeploymentUnitDir;
+import org.apache.ode.store.ProcessStoreImpl;
 import org.apache.ode.utils.GUID;
 import org.apache.ode.utils.StreamUtils;
-import org.apache.ode.utils.SystemUtils;
+
+import org.apache.ode.utils.fs.FileUtils;
 import org.apache.ode.utils.xsl.XslTransformHandler;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import com.sun.org.apache.xml.internal.utils.PrefixResolver;
+import com.sun.org.apache.xml.internal.utils.PrefixResolverDefault;
 
 import de.tud.stg.ao4ode.compiler.aom.Advice;
 import de.tud.stg.ao4ode.compiler.aom.Aspect;
@@ -48,21 +67,20 @@ import de.tud.stg.ao4ode.compiler.aom.Pointcut;
 
 public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 	
-	// protected OAdvice _oprocess;
-		
-	public AO4BPEL2AspectCompiler() throws Exception {
+	private ProcessStoreImpl processStore;
+
+	public AO4BPEL2AspectCompiler(ProcessStoreImpl processStore) throws Exception {
 		super();
+		this.processStore = processStore;
 	}
 
 	public OAspect compileAspect(URL aspectURL, String scope) throws CompilationException, IOException {
-		// Load aspect from file
 		File aspectFile = new File(aspectURL.getFile());
 		return compileAspect(aspectFile, scope);
 	}
 	
 	public OAspect compileAspect(File aspectFile, String scope) throws CompilationException, IOException {
 		
-		// TODO: Parse aspect
 		Aspect aspect = null;
         try {
             InputSource isrc = new InputSource(new ByteArrayInputStream(StreamUtils.read(aspectFile.toURL())));
@@ -77,8 +95,6 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
         
         assert aspect.getAdvice() != null;
         
-        
-        // TODO: Compile aspect
         ResourceFinder wf;
         File suDir = aspectFile.getParentFile(); 
         wf = new DefaultResourceFinder(
@@ -88,8 +104,7 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
  
         OAspect oaspect;
         try {
-        	File _outputDir = new File(SystemUtils.userDirectory());
-        	oaspect = this.compile(aspect,wf,scope);
+        	oaspect = this.compile(aspect,wf,scope,aspectFile.getAbsoluteFile());
         }
         catch (CompilationException cex) {
             throw cex;
@@ -99,7 +114,7 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
         
 	}
 	
-	public OAspect compile(final Aspect aspect, ResourceFinder rf, String scope) throws CompilationException {
+	public OAspect compile(final Aspect aspect, ResourceFinder rf, String scope, File aspectFile) throws CompilationException {
 		
 		OAspect oaspect = new OAspect();
 		
@@ -111,7 +126,6 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
             oaspect.targetNamespace = aspect.getTargetNamespace();
         }
 		
-		// TODO: Versioning of aspects?
 		OAdvice oadvice = compile(aspect.getAdvice(), rf);
 		
 		oaspect.setScope(scope);
@@ -119,14 +133,130 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 		// Compile pointcuts
         List<Pointcut> pointcuts = aspect.getPointcuts().getPointcuts();
         for(Pointcut pointcut: pointcuts) {
-        	OPointcut oPointcut = new OPointcut(_oprocess, pointcut.getName(),
+        	OPointcut oPointcut = new OPointcut(_oprocess,
+        			pointcut.getName(),
+        			pointcut.getLanguage(),
         			pointcut.getQuery());
         	oaspect.addPointcut(oPointcut);
+        	
+
+        	// Replace xpath by prolog pointcuts
+        	if(oPointcut.getLanguage().equals("xpath")) {
+        		List<File> bpelFiles = getBpelFiles();
+        		replaceXPathPointcuts(oPointcut, bpelFiles);
+        	}
         }
         
         oaspect.setAdvice(oadvice);
         
         return oaspect;
+	}
+	
+	
+	private List<File> getBpelFiles() {		
+		List<File> allProcesses = new ArrayList<File>();
+		Collection<DeploymentUnitDir> processDeploymentUnits = processStore._deploymentUnits.values();
+		for(DeploymentUnitDir du : processDeploymentUnits) {
+			List<File> bpels = FileUtils.directoryEntriesInPath(du.getDeployDir(), DeploymentUnitDir._bpelFilter);
+			allProcesses.addAll(bpels);
+		}
+		
+		return allProcesses;
+	}
+
+	public void replaceXPathPointcuts(OPointcut oPointcut, List<File> bpelFiles) {
+		
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		factory.setNamespaceAware(true);
+    	Map<String,NodeList> nodeLists = new HashMap<String,NodeList>();
+    	
+    	// Evaluate XPath and get all matching nodes from all deployed processes
+		for(File bpelFile : bpelFiles) {
+			
+        	DocumentBuilder builder;
+        	Document doc = null;
+        	
+			try {
+				builder = factory.newDocumentBuilder();
+				try {					
+					doc = builder.parse(bpelFile);
+					
+					// Resolve the namespace prefixes using the
+					// declarations from the bpel document
+					final PrefixResolver resolver =
+		    			new PrefixResolverDefault(doc.getDocumentElement());
+					
+		    		NamespaceContext ctx = new NamespaceContext() {
+		    			public String getNamespaceURI(String prefix) {		    				
+		    				String resolved = resolver.getNamespaceForPrefix(prefix); 
+		    				return resolved;
+		    			}
+		    			// not used
+		    			@SuppressWarnings("rawtypes")
+						public Iterator getPrefixes(String val) {
+		    				return null;
+		    			}
+		    			// not used
+		    			public String getPrefix(String uri) {
+		    				return null;
+		    			}
+		    		};
+					
+					doc.normalizeDocument();
+										
+					XPathFactory xfactory = XPathFactory.newInstance();										
+		    		XPath xpath = xfactory.newXPath();
+		    		xpath.setNamespaceContext(ctx);	    		
+		    		String xpathString = oPointcut.getQuery();
+		    		try {
+						XPathExpression expr = xpath.compile(xpathString);
+						Object result = expr.evaluate(doc.getDocumentElement(), XPathConstants.NODESET);
+						NodeList nodes = (NodeList) result;
+						nodeLists.put(bpelFile.getName(), nodes);				
+					} catch (XPathExpressionException e) {
+						e.printStackTrace();
+					}
+					
+				} catch (MalformedURLException e1) {					
+					e1.printStackTrace();
+				} catch (SAXException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+				
+			} catch (ParserConfigurationException e1) {
+				e1.printStackTrace();
+			}			        		
+    		
+		}
+		
+		// Create prolog pointcut for nodes matched by xpath
+		StringBuffer buf = new StringBuffer();		
+		for(String process : nodeLists.keySet()) {
+			NodeList nodes = nodeLists.get(process);
+			if(nodes.getLength() > 0) {
+				__log.debug("Found " + nodes.getLength() + " matching Elements for process " + process);
+			
+				for (int i = 0; i < nodes.getLength(); i++) {
+					Node n = nodes.item(i);
+			    	buf.append("xpath(\"" + BpelCompiler.createXPath(n) + "\")");
+			    	if(i < nodes.getLength()-1)
+			    		buf.append(";");
+				}
+				buf.append(".");
+				
+			}
+		}
+		
+		__log.debug("Replacing xpath pointcut " + oPointcut.getQuery()
+				+ " with prolog pointcut " + buf.toString());
+		
+		oPointcut.setLanguage("prolog");
+		oPointcut.setQuery(buf.toString());
+		
 	}
 	
 	/**

@@ -73,7 +73,8 @@ public class ProcessStoreImpl implements ProcessStore {
 
     private Map<QName, ProcessConfImpl> _processes = new HashMap<QName, ProcessConfImpl>();
 
-    private Map<String, DeploymentUnitDir> _deploymentUnits = new HashMap<String, DeploymentUnitDir>();
+    // AO4ODE: changed visibility to public
+    public Map<String, DeploymentUnitDir> _deploymentUnits = new HashMap<String, DeploymentUnitDir>();
 
     /** Guards access to the _processes and _deploymentUnits */
     private final ReadWriteLock _rw = new ReentrantReadWriteLock();

@@ -6,8 +6,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.apache.ode.bpel.iapi.ProcessConf;
 import org.apache.ode.bpel.iapi.ProcessStoreListener;
+import org.apache.ode.store.ProcessStoreImpl;
 
 public interface AspectStore {
     /**
@@ -15,7 +15,7 @@ public interface AspectStore {
      * @param deploymentUnitDirectory directory containing all deployment files
      * @return a collection of aspect ids (deployed aspect)
      */
-    Collection<QName> deployAspect(File deploymentUnitDirectory, String scope);
+    Collection<QName> deployAspect(File deploymentUnitDirectory, String scope, ProcessStoreImpl processStore);
 
     /**
      * Undeploys a package.
@@ -42,8 +42,14 @@ public interface AspectStore {
      * @return list of  aspect qnames
      */
     List<QName> getAspectList();
-    
-    /**
+        
+    long getCurrentVersion();
+
+	Collection<AspectConfImpl> getAspects();
+	
+	AspectConfImpl getAspectConfiguration(QName aspectId);
+	
+	/**
      * Register a listener
      * @param asl  {@link AspectStoreListener} 
      */
@@ -54,11 +60,5 @@ public interface AspectStore {
      * @param psl {@link AspectStoreListener} 
      */
     void unregisterListener(ProcessStoreListener asl);
-    
-    long getCurrentVersion();
-
-	Collection<AspectConfImpl> getAspects();
-	
-	AspectConfImpl getAspectConfiguration(QName aspectId);
 
 }

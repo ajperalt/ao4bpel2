@@ -993,6 +993,9 @@ public abstract class BpelCompiler implements CompilerContext {
     
     // AO4ODE: Create XPath
     public static String createXPath(Node n) {
+    	return BpelCompiler.createXPath(n, true);
+    }
+    public static String createXPath(Node n, boolean nsctx) {
 		Node parent = null;
 		Stack<Node> stack = new Stack<Node>();
 		StringBuffer buffer = new StringBuffer();
@@ -1022,12 +1025,18 @@ public abstract class BpelCompiler implements CompilerContext {
 				// is this the root element?
 				if (buffer.length() == 0) {
 					// root element - simply append element name
-					buffer.append(currentNode.getLocalName());
+					if(nsctx)
+						buffer.append(currentNode.getLocalName());
+					else
+						buffer.append(currentNode.getNodeName());
 				}
 				else {
 					// child element - append slash and element name
 					buffer.append("/");
-					buffer.append(currentNode.getLocalName());
+					if(nsctx)
+						buffer.append(currentNode.getLocalName());
+					else
+						buffer.append(currentNode.getNodeName());
 
 					if (currentNode.hasAttributes()) {
 						// see if the element has a name or id attribute
@@ -1052,9 +1061,18 @@ public abstract class BpelCompiler implements CompilerContext {
 						while (null != prev_sibling) {
 							if (prev_sibling.getNodeType() == currentNode
 									.getNodeType()) {
-								if (prev_sibling.getLocalName()
-										.equalsIgnoreCase(currentNode.getLocalName())) {
-									prev_siblings++;
+								
+								if(nsctx) {
+									if (prev_sibling.getLocalName()
+											.equalsIgnoreCase(currentNode.getLocalName())) {
+										prev_siblings++;
+									}
+								}
+								else {
+									if (prev_sibling.getNodeName()
+											.equalsIgnoreCase(currentNode.getNodeName())) {
+										prev_siblings++;
+									}
 								}
 							}
 							prev_sibling = prev_sibling.getPreviousSibling();

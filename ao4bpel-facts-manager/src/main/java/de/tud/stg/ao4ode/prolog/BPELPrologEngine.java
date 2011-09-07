@@ -61,7 +61,7 @@ public class BPELPrologEngine implements IBPELPrologEngine {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch(NullPointerException npe) {
-			log.error("NULL POINTER EXCEPTION: ADD FACT");
+			log.error("NULL POINTER EXCEPTION: ADD FACT " + fact);
 			npe.printStackTrace();
 		}
 	}
@@ -256,8 +256,7 @@ public class BPELPrologEngine implements IBPELPrologEngine {
 		
 		try {
 			SolveInfo si = engine.solve(q);			
-			if(si.isSuccess()) { // pointcut matches 
-				// TODO: do something
+			if(si != null && si.isSuccess()) { // pointcut matches 
 				return true;
 			}
 			else {

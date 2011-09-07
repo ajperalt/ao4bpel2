@@ -26,6 +26,7 @@ import org.apache.ode.bpel.iapi.ContextException;
 import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.store.DeploymentUnitDir;
 import org.apache.ode.store.DeploymentUnitDir.CBPInfo;
+import org.apache.ode.store.ProcessStoreImpl;
 import org.apache.ode.utils.InternPool;
 import org.apache.ode.utils.InternPool.InternableBlock;
 import org.apache.ode.utils.fs.FileUtils;
@@ -61,7 +62,7 @@ public class AspectDeploymentUnitDir {
      * Compile all aspects in aspect deploy dir
 	 * @param scope 
      */
-    public void compile(String scope) {
+    public void compile(String scope, ProcessStoreImpl processStore) {
     	
     	
     	List<File> aspects = FileUtils.directoryEntriesInPath(_duDirectory, AspectDeploymentUnitDir._aspectFilter);
@@ -72,7 +73,7 @@ public class AspectDeploymentUnitDir {
         	File cba = new File(b.substring(0,b.lastIndexOf(".aspect")) + ".cba"); 
         	if (!cba.exists() || cba.lastModified() < aspect.lastModified()) {
         		log.debug("compiling " + aspect);
-        		compile(aspect, scope);
+        		compile(aspect, scope, processStore);
         	} else {
         		log.debug("skipping compilation of " + aspect + " cba found: " + cba);
         	}
@@ -80,14 +81,14 @@ public class AspectDeploymentUnitDir {
         
     }
     
-    private void compile(final File aspectFile, final String scope) {
+    private void compile(final File aspectFile, final String scope, final ProcessStoreImpl processStore) {
     	
         // Create aspect such that immutable objects are intern'ed.
         InternPool.runBlock(new InternableBlock() {
         	public void run() {
                 try {
                     
-                    AO4BPEL2AspectCompiler compiler = new AO4BPEL2AspectCompiler();
+                    AO4BPEL2AspectCompiler compiler = new AO4BPEL2AspectCompiler(processStore);
                     
                     OAspect oaspect = compiler.compileAspect(aspectFile, scope);
                     

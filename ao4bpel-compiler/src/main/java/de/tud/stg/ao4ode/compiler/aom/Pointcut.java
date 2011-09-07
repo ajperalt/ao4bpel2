@@ -13,6 +13,10 @@ public class Pointcut extends BpelObject {
         return getAttribute("name", null);
     }
     
+    public String getLanguage() {
+        return getAttribute("language", null);
+    }
+    
     public String getQuery() {
     	return this.getTextValue();
     }

@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.compiler.bom.CreateInstanceActivity;
+import org.apache.ode.bpel.iapi.ProcessStore;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OAssign;
@@ -24,6 +25,7 @@ import org.apache.ode.bpel.o.OSequence;
 import org.apache.ode.bpel.runtime.ACTIVITY;
 import org.apache.ode.bpel.runtime.ACTIVITYGUARD;
 import org.apache.ode.bpel.runtime.ScopeFrame;
+import org.apache.ode.store.ProcessStoreImpl;
 import org.apache.ode.utils.DOMUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -43,6 +45,7 @@ public class AspectManager {
 	private BpelFactsManager fm = null;
 	
 	private AspectStore aspectStore;
+	private ProcessStoreImpl processStore;
 	private Map<Long,ACTIVITYGUARD> jpActivities = new HashMap<Long,ACTIVITYGUARD>();
 	
 	private AspectManager() {	
@@ -175,9 +178,12 @@ public class AspectManager {
 		this.aspectStore = as;
 	}
 	
-	// TODO: Avoid singleton pattern
-	public static AspectManager getInstance() {				
-		return instance;
+	public void setProcessStore(ProcessStoreImpl ps) {
+		this.processStore = ps;
+	}
+	
+	public ProcessStoreImpl getProcessStore() {
+		return this.processStore;
 	}
 
 	public void addJPActivity(long pid, ACTIVITYGUARD oactivity) {		
@@ -221,6 +227,10 @@ public class AspectManager {
 		}
 		
 		return value;
+	}
+	
+	public static AspectManager getInstance() {				
+		return instance;
 	}
 	
 }
