@@ -1552,7 +1552,7 @@ org.apache.ode.DeploymentHandling = {};
                 }
                 if(response == true){
                     org.apache.ode.Widgets.alert('Aspect Package '+ packageName + 'undeployed successfully.');
-                    org.apache.ode.DeploymentHandling.populateDeployedPacks();
+                    org.apache.ode.DeploymentHandling.populateDeployedAspectPacks();
                 }else{
                     org.apache.ode.Widgets.alert('Error occurred during undeployment or undeplyment unsuccessful.');
                 }
@@ -1581,9 +1581,9 @@ org.apache.ode.DeploymentHandling = {};
     ns.undeployPackage = undeployPackage;
     ns.viewPackDetails = viewPackDetails;
     ns.populateDeployedPacks = populateDeployedPackages;
-    // AO4ODE
-    ns.populateDeployedAspectPacks = populateDeployedAspectPackages;
+    // AO4ODE    
     ns.getDeployedAspectPackages = getDeployedAspectPackages;
     ns.undeployAspectPackage = undeployAspectPackage;
+    ns.populateDeployedAspectPacks = populateDeployedAspectPackages;
 })();
 

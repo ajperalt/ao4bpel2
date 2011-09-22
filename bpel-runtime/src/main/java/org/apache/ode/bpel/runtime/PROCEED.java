@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OProceed;
 
-import de.tud.stg.ao4ode.runtime.AspectManager;
+import de.tud.stg.ao4ode.runtime.aspectmanager.AspectManager;
 
 
 /**

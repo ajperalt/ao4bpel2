@@ -5,6 +5,9 @@ import java.util.List;
 import org.apache.ode.bpel.compiler.bom.Process;
 import org.w3c.dom.Element;
 
+/**
+ * @author A. Look
+ */
 public class Advice extends Process {
 
 	public Advice(Element el) {

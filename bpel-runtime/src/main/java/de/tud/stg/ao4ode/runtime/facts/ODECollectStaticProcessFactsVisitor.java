@@ -4,7 +4,6 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ode.bpel.engine.migration.CorrelationKeySetMigration;
 import org.apache.ode.bpel.o.ASTVisitor;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAssign;
@@ -65,7 +64,6 @@ public class ODECollectStaticProcessFactsVisitor implements ASTVisitor {
 	// In Apache ODE every invoke lives within its own scope
 	// see: http://ode.apache.org/atomic-scopes-extension-for-bpel.html
 	public void visit(OScope scope) {
-		log.debug("Visiting OScope with activity: " + scope.activity.getClass().getSimpleName());
 		scope.activity.accept(this);
 		scope.faultHandler.accept(this);
 	}

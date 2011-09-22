@@ -15,7 +15,7 @@ import org.apache.ode.bpel.runtime.channels.TerminationChannel;
 import org.apache.ode.jacob.SynchChannel;
 import org.w3c.dom.Element;
 
-import de.tud.stg.ao4ode.runtime.AspectManager;
+import de.tud.stg.ao4ode.runtime.aspectmanager.AspectManager;
 
 public class ADVICE extends PROCESS {
 	

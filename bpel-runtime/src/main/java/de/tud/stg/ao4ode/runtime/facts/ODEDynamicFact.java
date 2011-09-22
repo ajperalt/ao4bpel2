@@ -5,7 +5,9 @@ import org.apache.ode.bpel.o.OBase;
 
 import de.tud.stg.ao4ode.facts.DynamicFact;
 
-
+/**
+ * @author A. Look
+ */
 public class ODEDynamicFact implements DynamicFact, Serializable {
 	
 	private static final long serialVersionUID = -1178719062670275682L;

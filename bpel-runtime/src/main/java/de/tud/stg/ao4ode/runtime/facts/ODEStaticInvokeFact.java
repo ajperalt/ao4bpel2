@@ -2,6 +2,9 @@ package de.tud.stg.ao4ode.runtime.facts;
 
 import de.tud.stg.ao4ode.facts.StaticInvokeFact;
 
+/**
+ * @author A. Look
+ */
 public class ODEStaticInvokeFact extends ODEStaticActivityFact implements StaticInvokeFact {
 
 	private String partnerLink,	portType, operation, inputVar, outputVar;

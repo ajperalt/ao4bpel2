@@ -1,11 +1,12 @@
 package de.tud.stg.ao4ode.runtime.facts;
 
 import org.apache.ode.bpel.o.OBase;
-import org.apache.ode.bpel.runtime.VariableInstance;
 
 import de.tud.stg.ao4ode.facts.ReadVariableFact;
 
-
+/**
+ * @author A. Look
+ */
 public class ODEReadVariableFact extends ODEDynamicFact implements ReadVariableFact {
 
 	private static final long serialVersionUID = 5477212048248084442L;

@@ -89,7 +89,7 @@ if (!isMultipart) {
 
                             OMElement payload = null;
                             OMFactory omFactory = OMAbstractFactory.getOMFactory();
-                            OMNamespace ns = omFactory.createOMNamespace("http://www.apache.org/ode/pmapi","p");
+                            OMNamespace ns = omFactory.createOMNamespace("http://www.apache.org/ode/deployapi","p");
                             payload = omFactory.createOMElement("deployAspect", ns);
                             OMElement name = omFactory.createOMElement("name", ns);
                             OMElement scope = omFactory.createOMElement("scope", ns);

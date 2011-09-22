@@ -59,7 +59,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
-import de.tud.stg.ao4ode.runtime.AspectManager;
+import de.tud.stg.ao4ode.runtime.aspectmanager.AspectManager;
 
 import javax.xml.namespace.QName;
 

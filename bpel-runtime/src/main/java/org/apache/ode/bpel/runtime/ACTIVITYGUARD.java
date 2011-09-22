@@ -18,19 +18,19 @@
  */
 package org.apache.ode.bpel.runtime;
 
+import java.io.Serializable;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ode.bpel.common.FaultException;
-import org.apache.ode.bpel.compiler.BpelC;
-import org.apache.ode.bpel.compiler.BpelCompiler;
-import org.apache.ode.bpel.compiler.BpelCompiler20;
-import org.apache.ode.bpel.compiler.bom.Bpel11QNames;
-import org.apache.ode.bpel.compiler.bom.Bpel20QNames;
-import org.apache.ode.bpel.compiler.bom.BpelObjectFactory;
-import org.apache.ode.bpel.compiler.bom.DOMBuilderContentHandler;
 import org.apache.ode.bpel.engine.BpelProcess;
 import org.apache.ode.bpel.engine.BpelRuntimeContextImpl;
-import org.apache.ode.bpel.engine.PartnerLinkMyRoleImpl;
 import org.apache.ode.bpel.evt.ActivityEnabledEvent;
 import org.apache.ode.bpel.evt.ActivityExecEndEvent;
 import org.apache.ode.bpel.evt.ActivityExecStartEvent;
@@ -41,55 +41,26 @@ import org.apache.ode.bpel.explang.EvaluationException;
 import org.apache.ode.bpel.iapi.Endpoint;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
-import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.bpel.o.OExpression;
+import org.apache.ode.bpel.o.OFailureHandling;
 import org.apache.ode.bpel.o.OInvoke;
 import org.apache.ode.bpel.o.OLink;
-import org.apache.ode.bpel.o.OPartnerLink;
-import org.apache.ode.bpel.o.OProcess;
 import org.apache.ode.bpel.o.OScope;
-import org.apache.ode.bpel.o.OFailureHandling;
+import org.apache.ode.bpel.runtime.channels.ActivityRecoveryChannel;
+import org.apache.ode.bpel.runtime.channels.ActivityRecoveryChannelListener;
 import org.apache.ode.bpel.runtime.channels.FaultData;
 import org.apache.ode.bpel.runtime.channels.LinkStatusChannelListener;
 import org.apache.ode.bpel.runtime.channels.ParentScopeChannel;
 import org.apache.ode.bpel.runtime.channels.ParentScopeChannelListener;
-import org.apache.ode.bpel.runtime.channels.TerminationChannel;
 import org.apache.ode.bpel.runtime.channels.TerminationChannelListener;
-import org.apache.ode.bpel.runtime.channels.ActivityRecoveryChannel;
-import org.apache.ode.bpel.runtime.channels.ActivityRecoveryChannelListener;
 import org.apache.ode.bpel.runtime.channels.TimerResponseChannel;
 import org.apache.ode.bpel.runtime.channels.TimerResponseChannelListener;
 import org.apache.ode.jacob.ChannelListener;
 import org.apache.ode.jacob.SynchChannel;
-import org.apache.ode.jacob.vpu.ExecutionQueueImpl;
-import org.apache.ode.jacob.vpu.JacobVPU;
-import org.apache.ode.utils.DOMUtils;
-import org.apache.ode.utils.XMLParserUtils;
-
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXNotRecognizedException;
-import org.xml.sax.SAXNotSupportedException;
-import org.xml.sax.XMLReader;
 
-import de.tud.stg.ao4ode.runtime.AO4ODEExecutionQueueImpl;
-import de.tud.stg.ao4ode.runtime.AdviceActivity;
-import de.tud.stg.ao4ode.runtime.AspectManager;
-import de.tud.stg.ao4ode.runtime.facts.ODEInvokeFact;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.URI;
-import java.net.URL;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import de.tud.stg.ao4ode.runtime.aspectmanager.AdviceActivity;
+import de.tud.stg.ao4ode.runtime.aspectmanager.AspectManager;
 
 //AO4ODE: Changed Visibility to public
 public class ACTIVITYGUARD extends ACTIVITY {
@@ -133,20 +104,20 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 		_self.self,
                 		newChannel(ParentScopeChannel.class));
                 
-                // AO4ODE: Pointcut matching
+                // AO4ODE: Scope & Pointcut matching
             	AspectManager am = AspectManager.getInstance();
 
             	AdviceActivity aa = am.getAdvice(
             			getBpelRuntimeContext().getPid(), _self.o);
             	
-            	// FIXME: No pointcut matching during advice execution?            	
-                if(!(_self.o.getOwner() instanceof OAdvice) && aa != null) {
+            	// TODO: advice level            	
+                if(aa != null && !(_self.o.getOwner() instanceof OAdvice)) {
                 	
                 	// AO4ODE: Add PartnerLinks of Advices to Process
                 	BpelRuntimeContextImpl rt = (BpelRuntimeContextImpl)getBpelRuntimeContext();
                 	BpelProcess bpelProcess = rt._bpelProcess;
                 	for(OAdvice oAdvice : aa.getAdvices()) {
-                		__log.error("Adding advice " + oAdvice.getName() + " to bpelProcess: " + bpelProcess.getOProcess().getName());
+                		__log.debug("Adding advice " + oAdvice.getName() + " to bpelProcess: " + bpelProcess.getOProcess().getName());
                 		Map<String, Endpoint> invokeEndpoints = am.getAspectConfiguration(oAdvice.getOAspect().getQName()).getInvokeEndpoints();
                 		if(invokeEndpoints.size() > 0) {
                 			bpelProcess.addAdvice(oAdvice, invokeEndpoints);                		
@@ -240,7 +211,7 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 BpelRuntimeContext nativeAPI = (BpelRuntimeContext)getExtension(BpelRuntimeContext.class);
                 if (fault == null) {
                     // nativeAPI.completedOk();
-                	__log.error("PROCEED COMPLETED - OK");                	
+                	__log.debug("PROCEED COMPLETED - OK");                	
                 } else {
                     // nativeAPI.completedFault(fault);
                 	__log.error("PROCEED COMPLETED - FAULT");
@@ -293,7 +264,7 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 BpelRuntimeContext nativeAPI = (BpelRuntimeContext)getExtension(BpelRuntimeContext.class);
                 if (fault == null) {
                     // nativeAPI.completedOk();
-                	__log.error("ADVICE SEQUENCE COMPLETED - OK");                	
+                	__log.debug("ADVICE SEQUENCE COMPLETED - OK");                	
                 } else {
                     // nativeAPI.completedFault(fault);
                 	__log.error("ADVICE SEQUENCE COMPLETED - FAULT");

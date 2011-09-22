@@ -2,6 +2,9 @@ package de.tud.stg.ao4ode.runtime.facts;
 
 import de.tud.stg.ao4ode.facts.StaticActivityFact;
 
+/**
+ * @author A. Look
+ */
 public class ODEStaticActivityFact implements StaticActivityFact {
 	
 	private String token;

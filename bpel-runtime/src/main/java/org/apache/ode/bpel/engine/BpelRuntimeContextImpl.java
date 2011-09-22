@@ -98,6 +98,7 @@ import org.apache.ode.bpel.runtime.channels.InvokeResponseChannel;
 import org.apache.ode.bpel.runtime.channels.PickResponseChannel;
 import org.apache.ode.bpel.runtime.channels.TimerResponseChannel;
 import org.apache.ode.jacob.JacobRunnable;
+import org.apache.ode.jacob.vpu.ExecutionQueueImpl;
 import org.apache.ode.jacob.vpu.JacobVPU;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.utils.GUID;
@@ -111,15 +112,11 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Document;
 
 import de.tud.stg.ao4ode.facts.BpelFactsManager;
-import de.tud.stg.ao4ode.runtime.AO4ODEExecutionQueueImpl;
 
 
 public class BpelRuntimeContextImpl implements BpelRuntimeContext {
 
     private static final Log __log = LogFactory.getLog(BpelRuntimeContextImpl.class);
-
-    // AO4ODE:
-    private final BpelFactsManager bfm = BpelFactsManager.getInstance();
     
     /** Data-access object for process instance. */
     protected ProcessInstanceDAO _dao;
@@ -130,10 +127,8 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
     /** JACOB VPU */
     protected JacobVPU _vpu;
 
-    /** JACOB ExecutionQueue (state) */
-    // AO4ODE:
-    // protected ExecutionQueueImpl _soup;
-    protected AO4ODEExecutionQueueImpl _soup;
+    /** JACOB ExecutionQueue (state) */    
+    protected ExecutionQueueImpl _soup;
 
     private MyRoleMessageExchangeImpl _instantiatingMessageExchange;
 
@@ -157,9 +152,8 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
         _instantiatingMessageExchange = instantiatingMessageExchange;
         _vpu = new JacobVPU();
         _vpu.registerExtension(BpelRuntimeContext.class, this);
-
-        // AO4ODE: Use AO4BPEL ExeciutionQueueImpl
-        _soup = new AO4ODEExecutionQueueImpl(this.getClass().getClassLoader(), this);
+        
+        _soup = new ExecutionQueueImpl(this.getClass().getClassLoader());
         _soup.setReplacementMap(_bpelProcess.getReplacementMap(dao.getProcess().getProcessId()));
         _outstandingRequests = null;
         _imaManager = new IMAManager();
@@ -168,8 +162,7 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
         if (bpelProcess.isInMemory()) {
             ProcessInstanceDaoImpl inmem = (ProcessInstanceDaoImpl) _dao;
             if (inmem.getSoup() != null) {
-            	// AO4ODE: Use AO4BPEL ExecutionQueueImpl
-                _soup = (AO4ODEExecutionQueueImpl) inmem.getSoup();
+                _soup = (ExecutionQueueImpl) inmem.getSoup();
                 _imaManager = (IMAManager) _soup.getGlobalData();
                 _vpu.setContext(_soup);
             }
@@ -764,21 +757,14 @@ public class BpelRuntimeContextImpl implements BpelRuntimeContext {
     public String invoke(int aid, PartnerLinkInstance partnerLink, Operation operation, Element outgoingMessage,
                          InvokeResponseChannel channel) throws FaultException {
 
-    	__log.info("AO4ODE: INVOKE PARTNER LINK INSTANCE: " + partnerLink);
-        PartnerLinkDAO plinkDAO = fetchPartnerLinkDAO(partnerLink);
-        __log.info("AO4ODE: INVOKE PARTNER LINK DAO: " + plinkDAO);
-        
+        PartnerLinkDAO plinkDAO = fetchPartnerLinkDAO(partnerLink);        
         // The target (partner endpoint) -- if it has not been explicitly
         // initialized
         // then use the value from bthe deployment descriptor ..
         Element partnerEPR = plinkDAO.getPartnerEPR();
         EndpointReference partnerEpr;
 
-        __log.error("partnerEPR: " + partnerEPR);
-        if (partnerEPR == null) {
-        	// AO4ODE: Debugging, remove!
-        	__log.error("partnerLink.partnerLink: " + partnerLink.partnerLink);
-        	
+        if (partnerEPR == null) {        	
             partnerEpr = _bpelProcess.getInitialPartnerRoleEPR(partnerLink.partnerLink);
             // In this case, the partner link has not been initialized.
             if (partnerEpr == null)

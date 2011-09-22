@@ -65,8 +65,8 @@ import org.apache.ode.il.OMUtils;
 import org.apache.ode.utils.fs.FileUtils;
 import org.apache.ode.utils.Namespaces;
 
-import de.tud.stg.ao4ode.aspectmanager.AspectStore;
-import de.tud.stg.ao4ode.runtime.AspectManager;
+import de.tud.stg.ao4ode.aspectstore.AspectStore;
+import de.tud.stg.ao4ode.runtime.aspectmanager.AspectManager;
 
 /**
  * Axis wrapper for process deployment.
@@ -129,7 +129,7 @@ public class DeploymentWebService {
             	if (operation.equals("deployAspect")) {
             		log.debug("AO4ODE: Deploying ASPECT!");
             		OMElement deployElement = messageContext.getEnvelope().getBody().getFirstElement();
-                    OMElement namePart = deployElement.getFirstChildWithName(new QName(null, "name"));
+                    OMElement namePart = deployElement.getFirstChildWithName(new QName(Namespaces.ODE_DEPLOYAPI_NS, "name"));
                     // "be liberal in what you accept from others"
                     if (namePart == null) {
                        namePart = OMUtils.getFirstChildWithName(deployElement, "name");
@@ -140,9 +140,9 @@ public class DeploymentWebService {
                         }
                     }
                     
-                    OMElement scopePart = deployElement.getFirstChildWithName(new QName(null, "scope"));
+                    OMElement scopePart = deployElement.getFirstChildWithName(new QName(Namespaces.ODE_DEPLOYAPI_NS, "scope"));
 
-                    OMElement packagePart = deployElement.getFirstChildWithName(new QName(null, "package"));
+                    OMElement packagePart = deployElement.getFirstChildWithName(new QName(Namespaces.ODE_DEPLOYAPI_NS, "package"));
 
                     // "be liberal in what you accept from others"
                     if (packagePart == null) {
@@ -162,10 +162,9 @@ public class DeploymentWebService {
                     
                     String scope = "true.";                    
                     if(scopePart != null) {
-                    	__log.warn("scopePart: " + scopePart.toString());
                     	scope = scopePart.getText(); 
                     }
-                    __log.warn("scope: "  + scope);
+                    __log.debug("scope: "  + scope);
 
                     OMElement zip = null;
                     if (packagePart != null) {
@@ -217,7 +216,7 @@ public class DeploymentWebService {
                         // Telling the poller what we deployed so that it doesn't try to deploy it again
                         // TODO: Aspect Poller
                         // _poller.markAsDeployed(dest);
-                        __log.info("Deployment of aspect " + dest.getName() + " successful.");
+                        __log.debug("Deployment of aspect " + dest.getName() + " successful.");
 
                         OMElement response = factory.createOMElement("response", null);
 

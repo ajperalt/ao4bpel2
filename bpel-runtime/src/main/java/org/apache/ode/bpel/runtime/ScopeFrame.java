@@ -41,7 +41,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import de.tud.stg.ao4ode.runtime.AspectManager;
+import de.tud.stg.ao4ode.runtime.aspectmanager.AspectManager;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -109,9 +109,6 @@ public class ScopeFrame implements Serializable {
 
     public VariableInstance resolve(OScope.Variable variable) {
     	
-    	// AO4ODE: TODO: Remove
-    	__log.debug("Resolving VariableInstance for variable: " + variable.name);
-   		
     	ScopeFrame scopeFrame = null;
     	
     	// AO4ODE:
@@ -145,16 +142,11 @@ public class ScopeFrame implements Serializable {
     	
     	if (scopeFrame == null)
     		__log.error("scopeFrame is NULL!");
-    	else
-    		__log.error("scopeFrame: " + scopeFrame.toString());
-        
+    	        
         if (scopeFrame == null) return null;
         
         VariableInstance vi = new VariableInstance(scopeFrame.scopeInstanceId, variable); 
-        
-        // AO4ODE: REMOVE Debugging
-        __log.debug("Resolved VariableInstance for declaration: " + vi.declaration.name);
-        
+                
         return vi;
     }
 

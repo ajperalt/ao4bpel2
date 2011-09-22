@@ -14,7 +14,6 @@ import org.apache.ode.bpel.compiler.bom.BpelObject;
 import org.apache.ode.bpel.compiler.bom.BpelObjectFactory;
 import org.apache.ode.bpel.compiler.bom.DOMBuilderContentHandler;
 import org.apache.ode.bpel.compiler.bom.LocalEntityResolver;
-import org.apache.ode.bpel.compiler.bom.Process;
 import org.apache.ode.utils.DOMUtils;
 import org.apache.ode.utils.XMLParserUtils;
 import org.w3c.dom.Document;
@@ -23,6 +22,9 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+/**
+ * @author A. Look
+ */
 public class AspectObjectFactory extends BpelObjectFactory {
 	
 	private static AspectObjectFactory __instance = new AspectObjectFactory();
@@ -79,13 +81,13 @@ public class AspectObjectFactory extends BpelObjectFactory {
     	__log.debug("AspectObjectFactory.createBpelObject: " + el);
         QName type = new QName(el.getNamespaceURI(), el.getLocalName());
                 
-        Class cls = _mappings.get(type);
+        Class<? extends BpelObject> cls = _mappings.get(type);
         if (cls == null) {
             __log.warn("Unrecognized element in ASPECT dom: " + type);
             return new BpelObject(el);
         }
         try {        	
-            Constructor ctor = cls.getConstructor(__CTOR);
+            Constructor<? extends BpelObject> ctor = cls.getConstructor(__CTOR);
             BpelObject bo =(BpelObject) ctor.newInstance(new Object[]{el});
             bo.setURI(uri);
             return bo;

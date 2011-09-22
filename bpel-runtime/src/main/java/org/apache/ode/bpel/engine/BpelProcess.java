@@ -868,10 +868,7 @@ public class BpelProcess {
             _expLangRuntimeRegistry = null;
         }
 
-        private void doHydrate() {
-        	// AO4ODE: REMOVE
-        	__log.error("BpelProcess, HydrationLatch.doHydrate");
-        	
+        private void doHydrate() {        	
             markused();
             __log.debug("Rehydrating process " + _pconf.getProcessId());
             try {
@@ -1184,7 +1181,7 @@ public class BpelProcess {
 
     // AO4ODE: Add Partner Link for advice
 	public void addAdvice(OProcess oadvice, Map<String,Endpoint> invokeEndpoints) {
-		__log.error("Adding advice " + oadvice + " to process" + this);		
+		__log.debug("Adding advice " + oadvice + " to process" + this);		
 		_adviceInvokeEndpoints.put(oadvice, invokeEndpoints);
 		addAdviceRoles();
 		initPartnerRoles(true);

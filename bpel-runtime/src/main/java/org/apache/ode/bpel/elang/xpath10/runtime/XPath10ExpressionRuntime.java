@@ -45,7 +45,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
-import de.tud.stg.ao4ode.runtime.AspectManager;
+import de.tud.stg.ao4ode.runtime.aspectmanager.AspectManager;
 
 import javax.xml.transform.TransformerFactory;
 

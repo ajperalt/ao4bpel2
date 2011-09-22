@@ -80,10 +80,10 @@ import org.apache.ode.store.ProcessStoreImpl;
 import org.apache.ode.utils.GUID;
 import org.apache.ode.utils.fs.TempFileManager;
 
-import de.tud.stg.ao4ode.aspectmanager.AspectStore;
-import de.tud.stg.ao4ode.aspectmanager.AspectStoreImpl;
-import de.tud.stg.ao4ode.runtime.AspectManager;
-import de.tud.stg.ao4ode.runtime.DynamicFactsBpelEventListener;
+import de.tud.stg.ao4ode.aspectstore.AspectStore;
+import de.tud.stg.ao4ode.aspectstore.AspectStoreImpl;
+import de.tud.stg.ao4ode.runtime.aspectmanager.AspectManager;
+import de.tud.stg.ao4ode.runtime.facts.ODEDynamicFactsBpelEventListener;
 
 /**
  * Server class called by our Axis hooks to handle all ODE lifecycle management.
@@ -243,12 +243,11 @@ public class ODEServer {
     private void initAO4ODE(AspectStore aspectstore) {
     	
     	// Register BpelEventListenr to collect dynamic facts
-    	DynamicFactsBpelEventListener dynFactsListener = new DynamicFactsBpelEventListener();
+    	ODEDynamicFactsBpelEventListener dynFactsListener = new ODEDynamicFactsBpelEventListener();
     	_bpelServer.registerBpelEventListener(dynFactsListener);
     	
     	// Initialize Aspect Manager
     	AspectManager am = AspectManager.getInstance();
-    	am.setDepoloymentDir(_workRoot);
     	am.setAspectStore(aspectstore);
     	am.setProcessStore(getProcessStore());
     	

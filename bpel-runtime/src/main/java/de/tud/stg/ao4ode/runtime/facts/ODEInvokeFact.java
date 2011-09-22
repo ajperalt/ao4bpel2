@@ -1,12 +1,13 @@
 package de.tud.stg.ao4ode.runtime.facts;
 
 import org.apache.ode.bpel.o.OInvoke;
-import org.apache.ode.bpel.runtime.INVOKE;
 import org.w3c.dom.Element;
 
 import de.tud.stg.ao4ode.facts.InvokeFact;
 
-
+/**
+ * @author A. Look
+ */
 public class ODEInvokeFact extends ODEDynamicFact implements InvokeFact {
 
 	private static final long serialVersionUID = 6155235595482152933L;

@@ -2,9 +2,12 @@ package de.tud.stg.ao4ode.compiler.aom;
 
 import javax.xml.namespace.QName;
 
+/** 
+ * @author A. Look
+ */
 public abstract class AO4BPEL20QNames {
     
-    // AO4ODE: AO4BPEL Aspect Namespace
+    // AO4BPEL Aspect Namespace
     public static final String NS_AO4VPEL2_0_ASPECT = "http://stg.tu-darmstadt.de/ao4bpel/2.0/aspect";
 
     /** Some BPEL 2.0 Final Elements **/

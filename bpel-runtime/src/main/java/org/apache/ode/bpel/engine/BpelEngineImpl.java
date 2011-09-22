@@ -70,7 +70,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import de.tud.stg.ao4ode.facts.BpelFactsManager;
-import de.tud.stg.ao4ode.runtime.facts.ODEBpelProcess;
+import de.tud.stg.ao4ode.runtime.facts.ODEBpelProcessFact;
 
 /**
  * Implementation of the {@link BpelEngine} interface: provides the server methods that should be invoked in the context of a
@@ -354,7 +354,7 @@ public class BpelEngineImpl implements BpelEngine {
         process.activate(this);
         
         // AO4ODE: Register Process and add static process facts
-    	bfm.registerProcess(new ODEBpelProcess(process.getOProcess()));
+    	bfm.registerProcess(process.getPID(), new ODEBpelProcessFact(process.getOProcess()));
     }
     
     /**

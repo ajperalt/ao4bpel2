@@ -65,6 +65,12 @@ import de.tud.stg.ao4ode.compiler.aom.Aspect;
 import de.tud.stg.ao4ode.compiler.aom.AspectObjectFactory;
 import de.tud.stg.ao4ode.compiler.aom.Pointcut;
 
+/**
+ * AO4BPEL 2.0 aspect compiler
+ * 
+ * @author A. Look
+ *
+ */
 public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 	
 	private ProcessStoreImpl processStore;
@@ -140,7 +146,7 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
         	oaspect.addPointcut(oPointcut);
         	
 
-        	// Replace xpath by prolog pointcuts
+        	// Replace xpath with prolog pointcuts
         	if(oPointcut.getLanguage().equals("xpath")) {
         		List<File> bpelFiles = getBpelFiles();
         		replaceXPathPointcuts(oPointcut, bpelFiles);

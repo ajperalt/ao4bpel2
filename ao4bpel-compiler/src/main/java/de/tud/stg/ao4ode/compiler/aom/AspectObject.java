@@ -3,6 +3,9 @@ package de.tud.stg.ao4ode.compiler.aom;
 import org.apache.ode.bpel.compiler.bom.BpelObject;
 import org.w3c.dom.Element;
 
+/**
+ * @author A. Look
+ */
 public class AspectObject extends BpelObject {
 
 	public AspectObject(Element el) {
