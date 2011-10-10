@@ -1029,6 +1029,15 @@ public abstract class BpelCompiler implements CompilerContext {
 						buffer.append(currentNode.getLocalName());
 					else
 						buffer.append(currentNode.getNodeName());
+					
+					if (currentNode.hasAttributes()) {
+						// see if the element has a name or id attribute
+						if (e.hasAttribute("name")) {
+							// id attribute found - use that
+							buffer.append("[@name='" + e.getAttribute("name")
+									+ "']");
+						}
+					}
 				}
 				else {
 					// child element - append slash and element name

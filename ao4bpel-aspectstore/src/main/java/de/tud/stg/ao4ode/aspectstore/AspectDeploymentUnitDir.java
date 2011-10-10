@@ -41,13 +41,19 @@ public class AspectDeploymentUnitDir {
 	private File _duDirectory;
 	private volatile DeployAspectDocument _dd;
 		
-	private static final FileFilter _aspectFilter = new FileFilter() {
+	public static final FileFilter _aspectFilter = new FileFilter() {
         public boolean accept(File path) {
             return path.getName().endsWith(".aspect") && path.isFile();
         }
     };
     
-    private static final FileFilter _cbaFilter = new FileFilter() {
+    public static final FileFilter _rulesFilter = new FileFilter() {
+        public boolean accept(File path) {
+            return path.getName().endsWith(".rules") && path.isFile();
+        }
+    };
+    
+    public static final FileFilter _cbaFilter = new FileFilter() {
         public boolean accept(File path) {
             return path.getName().endsWith(".cba") && path.isFile();
         }

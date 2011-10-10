@@ -52,6 +52,7 @@
       			</xsd:sequence>							
 			</xsd:extension>
 			<xsd:attribute name="type" type="xsd:string" use="required"/>
+			<xsd:attribute name="order" type="xsd:integer" />
 		</xsd:complexContent>
 	</xsd:complexType>
     

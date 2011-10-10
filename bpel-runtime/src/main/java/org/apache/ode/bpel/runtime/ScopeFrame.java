@@ -113,8 +113,8 @@ public class ScopeFrame implements Serializable {
     	
     	// AO4ODE:
     	// If the variable belongs to an advice, check if
-    	// it is a "context variable" and if that is the case
-    	// use process scope to resolve it!
+    	// it is a "context variable" and use scope of
+    	// join point activity to resolve it!
     	if(variable.getOwner() instanceof OAdvice) {
     		
     		OAdvice oadvice = (OAdvice)variable.getOwner();

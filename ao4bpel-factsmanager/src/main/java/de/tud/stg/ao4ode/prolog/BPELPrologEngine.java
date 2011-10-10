@@ -250,11 +250,17 @@ public class BPELPrologEngine implements IBPELPrologEngine {
 		String q = query.getQuery();
 		
 		// Replace ProcessID with pid
+		
 		if(pid != null) {
-			q = q.replaceAll("ProcessID", "'" + pid + "'");
+			// q = q.replaceAll("ProcessID", "'" + pid + "'");
+			q = "ProcessID='" + pid + "'," + q;
 		}
 		
+		
 		try {
+			
+			log.info("Solving query: " + q);
+			
 			SolveInfo si = engine.solve(q);			
 			if(si != null && si.isSuccess()) { // pointcut matches 
 				return true;
@@ -293,14 +299,17 @@ public class BPELPrologEngine implements IBPELPrologEngine {
 	}
 
 	// @Override
-	public void addRule(String rule) {
+	public void addRule(String rule) throws MalformedTheoryException {		
 		try {
-			engine.addTheory(new Theory(rule));
+			Theory theory = new Theory(rule);
+			engine.addTheory(theory);		
+			log.info("Added theory: " + theory.toString());
 		} catch (InvalidTheoryException e) {
-			e.printStackTrace();
+			MalformedTheoryException mte = new MalformedTheoryException(rule);
+			throw mte;
 		}
 	}
-	
+		
 	/*
 	 * (non-Javadoc)
 	 * @see de.tud.stg.bpel.ao4ode.prolog.IBPELPrologEngine#removeFactsForProcess(java.lang.Long)

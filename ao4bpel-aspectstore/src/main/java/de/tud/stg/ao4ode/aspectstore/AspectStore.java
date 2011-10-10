@@ -3,6 +3,7 @@ package de.tud.stg.ao4ode.aspectstore;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -52,6 +53,8 @@ public interface AspectStore {
     long getCurrentVersion();
 
 	Collection<AspectConfImpl> getAspects();
+	
+	Map<String, String> getRules();
 	
 	AspectConfImpl getAspectConfiguration(QName aspectId);
 	

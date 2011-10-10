@@ -102,7 +102,7 @@ public interface IBPELPrologEngine {
 	 * Adds a rule to the BPEL prolog engine.
 	 * @param rule a prolog rule
 	 */
-	public void addRule(String rule);
+	public void addRule(String rule) throws MalformedTheoryException;
 	
 	public void printFacts();
 	

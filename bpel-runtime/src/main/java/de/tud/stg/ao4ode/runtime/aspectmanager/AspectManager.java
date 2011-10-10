@@ -9,17 +9,24 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.ode.bpel.compiler.bom.Bpel20QNames;
 import org.apache.ode.bpel.o.OActivity;
 import org.apache.ode.bpel.o.OAdvice;
 import org.apache.ode.bpel.o.OInvoke;
 import org.apache.ode.bpel.o.OPointcut;
 import org.apache.ode.bpel.o.OSequence;
+import org.apache.ode.bpel.o.OFailureHandling;
+import org.apache.ode.bpel.o.OScope;
+import org.apache.ode.bpel.o.OFaultHandler;
+import org.apache.ode.bpel.o.OCatch;
 import org.apache.ode.bpel.runtime.ACTIVITYGUARD;
 import org.apache.ode.store.ProcessStoreImpl;
 
 import de.tud.stg.ao4ode.aspectstore.AspectConfImpl;
 import de.tud.stg.ao4ode.aspectstore.AspectStore;
 import de.tud.stg.ao4ode.facts.BpelFactsManager;
+import de.tud.stg.ao4ode.prolog.MalformedQueryException;
+import de.tud.stg.ao4ode.prolog.MalformedTheoryException;
 
 /**
  * @author A. Look
@@ -59,6 +66,10 @@ public class AspectManager {
 				
 				// Scoping
 				String scope = aspect.getOAspect().getScope();
+				
+				// Bind ProcessID
+				scope = addVariables(oActivity, aspect, scope);
+				
 				log.debug("Checking scope for aspect " + aspect.getOAspect().getQName() + ": " + scope);
 				if(scope == null || fm.solve("Scope for " + aspect.getOAspect().getQName(),
 						"Invalid Scope",
@@ -67,10 +78,13 @@ public class AspectManager {
 					log.debug("Scope " + scope + " is active, checking pointcuts!");
 					
 					// Check all pointcuts
-					for(OPointcut pointcut : aspect.getOAspect().getPointcuts()) {					
+					for(OPointcut pointcut : aspect.getOAspect().getPointcuts()) {	
+						
+						String pc = addVariables(oActivity, aspect, pointcut.getQuery());
+						
 						if(fm.solve(pointcut.getName(),
 								"Invalid Pointcut",
-								pointcut.getQuery(), pid)) {
+								pc, pid)) {
 							
 							log.debug("POINTCUT MATCH AT " + xpath + ": " + pointcut);
 							
@@ -129,8 +143,29 @@ public class AspectManager {
 					osequence.sequence.add(oadvice.procesScope);
 				}
 				
+				// Default fault handler
+				OFailureHandling fh = new OFailureHandling();
+				fh.retryFor = 0;
+				fh.retryDelay = 0;
+				fh.faultOnFailure = false;
+				osequence.setFailureHandling(fh);
+				
+				// OCatch ocatch = new OCatch(oActivity.getOwner(), oActivity.getParent());
+				OCatch ocatch = new OCatch(null, null);
+				// ocatch.faultName = Bpel20QNames.CATCHALL;
+				ocatch.activity = osequence;
+				ocatch.name = "Advice catchAll block";
+				
+				OFaultHandler faultHandler = new OFaultHandler(null);
+				faultHandler.catchBlocks.add(ocatch);
+				// OScope oscope = new OScope(oActivity.getOwner(), oActivity.getParent());
+				OScope oscope = new OScope(null, null);
+				oscope.name = "defaultAdviceScope";
+				oscope.activity = osequence;
+				oscope.faultHandler = faultHandler;
+				
 				AdviceActivity aa = new AdviceActivity();
-				aa.setOAdviceActivity(osequence);
+				aa.setOAdviceActivity(oscope);
 				aa.setBeforeAdvices(beforeAdvices);
 				aa.setAroundAdvices(aroundAdvices);
 				aa.setAfterAdvices(afterAdvices);
@@ -147,6 +182,12 @@ public class AspectManager {
 		
 	}
 	
+	private String addVariables(OActivity oActivity, AspectConfImpl aspect, String scope) {		 
+		return "ActivityID=" + oActivity.getId() + ","
+		+ "AspectDeploymentTime=" + aspect.getDeployDate().getTime() + ","
+		+ scope;				
+	}
+
 	public AspectConfImpl getAspectConfiguration(QName aid) {
 		return aspectStore.getAspectConfiguration(aid);
 	}
@@ -178,6 +219,9 @@ public class AspectManager {
 		if(partName.equals("name")) {
 			value = ag.getActivityInfo().getO().name;					
 		}
+		else if(partName.equals("xpath")) {
+			value = ag.getActivityInfo().getO().getXPath();					
+		}
 		else if(partName.equals("process")) {
 			value = ag.getActivityInfo().getO().getOwner().processName;
 		}
@@ -208,6 +252,17 @@ public class AspectManager {
 	
 	public static AspectManager getInstance() {				
 		return instance;
+	}
+	
+	public boolean validateQuery(String query) throws MalformedQueryException {
+		return fm.solve("Scope test: " + query,
+				"Invalid Scope",
+				query);
+	}
+
+	public void addRule(String ruleId, String rule) throws MalformedTheoryException {
+		log.info("Adding rule " + ruleId + ": " + rule);		
+		fm.addRule(rule);
 	}
 	
 }

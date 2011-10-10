@@ -1,6 +1,7 @@
 package de.tud.stg.ao4ode.aspectstore;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,6 +12,9 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,10 +24,17 @@ import org.apache.ode.bpel.dd.TDeploymentAspect;
 import org.apache.ode.bpel.iapi.ContextException;
 import org.apache.ode.bpel.iapi.EndpointReferenceContext;
 import org.apache.ode.bpel.o.OAspect;
+import org.apache.ode.bpel.o.OPointcut;
 import org.apache.ode.il.config.OdeConfigProperties;
 import org.apache.ode.store.Messages;
 import org.apache.ode.store.ProcessStoreImpl;
+import org.apache.ode.utils.fs.FileUtils;
 import org.apache.ode.utils.msg.MessageBundle;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import de.tud.stg.ao4ode.aspectstore.AspectDeploymentUnitDir.CBAInfo;
 
@@ -40,6 +51,8 @@ public class AspectStoreImpl implements AspectStore {
 	private static final Messages __msgs = MessageBundle.getMessages(Messages.class);
 
     private Map<QName, AspectConfImpl> _aspects = new HashMap<QName, AspectConfImpl>();
+    
+    private Map<String, String> _rules = new HashMap<String, String>();
 
     private Map<String, AspectDeploymentUnitDir> _deploymentUnits = new HashMap<String, AspectDeploymentUnitDir>();
 
@@ -65,10 +78,19 @@ public class AspectStoreImpl implements AspectStore {
 		
 		final Date deployDate = new Date();
 		final AspectDeploymentUnitDir du = new AspectDeploymentUnitDir(deploymentUnitDirectory);
+		
+		// Read rule files
+        List<File> rules = FileUtils.directoryEntriesInPath(deploymentUnitDirectory,
+        		AspectDeploymentUnitDir._rulesFilter);
+        for(File ruleFile : rules) {
+        	loadRuleFile(deployDate, ruleFile);
+        }
+        
 
 		// Compile all aspects
 		try {
-			__log.debug("Compiling deployment unit");
+			__log.debug("Compiling deployment unit");			
+			scope = replaceKeywords(deployDate, scope);			
             du.compile(scope, processStore);
         } catch (CompilationException ce) {
             String errmsg = __msgs.msgDeployFailCompileErrors(ce);
@@ -88,7 +110,7 @@ public class AspectStoreImpl implements AspectStore {
             __log.error(errmsg);
             throw new ContextException(errmsg);
         }
-
+        
         // retirePreviousPackageVersions(du);
         __log.debug("Deploying aspects defined in DD: " + dd.getDeployAspect().getAspectList());
         
@@ -121,12 +143,51 @@ public class AspectStoreImpl implements AspectStore {
 
         for (AspectConfImpl aspect : aspects) {
             __log.info("Aspect deployed successfully: " + du.getDeployDir() + "," +  aspect.getAspectId());
+            for(OPointcut pointcut : aspect.getOAspect().getPointcuts()) {
+            	pointcut.setQuery(replaceKeywords(aspect.getDeployDate(), pointcut.getQuery()));
+            }
             _aspects.put(aspect.getAspectId(), aspect);
 
         }
 
         return _aspects.keySet();
         
+	}
+	
+	private void loadRuleFile(Date deployDate, File ruleFile) {		
+		DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder docBuilder;
+        Document doc = null;
+		try {
+			docBuilder = docBuilderFactory.newDocumentBuilder();
+	        doc = docBuilder.parse (ruleFile);
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (SAXException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        doc.getDocumentElement().normalize();
+        NodeList listOfRules = doc.getElementsByTagName("rule");
+        for(int i=0; i<listOfRules.getLength() ; i++) {
+        	Node ruleNode = listOfRules.item(i);
+        	if(ruleNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element ruleElement = (Element)ruleNode;
+                String name = "unnamed rule #" + _rules.size()+1;
+                if(ruleElement.hasAttribute("name"))
+                	name = ruleElement.getAttribute("name");
+                String rule = replaceKeywords(deployDate,ruleElement.getTextContent());                
+                _rules.put(name, rule);
+        	}
+        }
+        
+	}
+
+	private String replaceKeywords(Date deployDate, String query) {		
+		String res = query.replaceAll("newinstance.", "created_after(AspectDeploymentTime).");
+    	// res = res.replaceAll("AspectDeploymentTime", deployDate.getTime()+"");    	
+    	return res;
 	}
 	
 	public Collection<QName> undeploy(final String duName) {
@@ -158,6 +219,10 @@ public class AspectStoreImpl implements AspectStore {
 	
 	public Collection<AspectConfImpl> getAspects() {
 		return _aspects.values();
+	}
+	
+	public Map<String, String> getRules() {
+		return _rules;
 	}
 
 	public long getCurrentVersion() {

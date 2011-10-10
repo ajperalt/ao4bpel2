@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -163,6 +164,14 @@ public class DeploymentWebService {
                     String scope = "true.";                    
                     if(scopePart != null) {
                     	scope = scopePart.getText(); 
+                    	// Test for valid scope
+                    	AspectManager am = AspectManager.getInstance();
+                    	try {
+                    		am.validateQuery(scope);
+                    	}
+                    	catch(Exception e) {
+                    		throw new OdeFault("Invalid scope: " + scope);
+                    	}
                     }
                     __log.debug("scope: "  + scope);
 
@@ -210,6 +219,22 @@ public class DeploymentWebService {
 
                         Collection<QName> deployed = _aspectstore.deployAspect(dest, scope, AspectManager.getInstance().getProcessStore());
 
+                        // Add rules
+                        AspectManager am = AspectManager.getInstance();
+                        Map<String, String> rules = _aspectstore.getRules();
+                        for(String ruleId : rules.keySet()) {
+                        	String rule = rules.get(ruleId);
+                        	// Test for valid rule
+                        	try {
+                        		am.addRule(ruleId, rule);
+                        	}
+                        	catch(Exception e) {
+                        		throw new OdeFault("Invalid rule: " + rule);
+                        	}
+                        	
+                        	
+                        }
+                        
                         File deployedMarker = new File(_deployPath, dest.getName() + ".deployed");
                         deployedMarker.createNewFile();
 

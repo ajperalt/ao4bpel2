@@ -7,10 +7,13 @@ import javax.xml.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import alice.tuprolog.InvalidTheoryException;
+
 import de.tud.stg.ao4ode.prolog.BPELPrologEngine;
 import de.tud.stg.ao4ode.prolog.IBPELPrologEngine;
 import de.tud.stg.ao4ode.prolog.IStaticProcessFactGenerator;
 import de.tud.stg.ao4ode.prolog.MalformedQueryException;
+import de.tud.stg.ao4ode.prolog.MalformedTheoryException;
 import de.tud.stg.ao4ode.prolog.Query;
 import de.tud.stg.ao4ode.prolog.StaticProcessFactGenerator;
 
@@ -32,12 +35,18 @@ public class BpelFactsManager {
 	
 	private BpelFactsManager() {
 		// TODO: Load rules from file
-		engine.addRule("activity(X):-event(ProcessID,_,_,_,_,X,_,'ActivityEnabledEvent',_),not(event(ProcessID,_,_,_,_,X,_,'ActivityExecStartEvent',_)).");
-		
-		engine.addRule("lastevent(X):-event(ProcessID,_,T1,_,_,X,_,'ActivityEnabledEvent',_),event(ProcessID,_,T2,_,_,Y,_,'ActivityEnabledEvent',_),Y=/=X,T1>T2.");
-		engine.addRule("lastactivity(X):-event(ProcessID,_,_,_,_,X,_,'ActivityEnabledEvent',_),lastevent(X).");
-		
-		engine.addRule("xpath(X):-event(ProcessID,X,_,_,_,_,_,'ActivityEnabledEvent',_),not(event(ProcessID,X,_,_,_,_,_,'ActivityExecStartEvent',_)).");
+		try {
+			engine.addRule("activity(X):-event(ProcessID,_,_,_,_,X,_,'ActivityEnabledEvent',_),not(event(ProcessID,_,_,_,_,X,_,'ActivityExecStartEvent',_)).");		
+			engine.addRule("activity_id(X):-event(ProcessID,X,_,_,_,_,_,'ActivityEnabledEvent',_),not(event(ProcessID,X,_,_,_,_,_,'ActivityExecStartEvent',_)).");
+			engine.addRule("variable_read(X):-get_var(_,ID,_,X,_),activity_id(ID).");
+			engine.addRule("variable_write(X):-set_var(_,ID,_,X,_,_),activity_id(ID).");
+			engine.addRule("s_invoke(ID,PARENTID,PARTNERLINK,PORTTYPE,OPERATION,INPUT,OUTPUT):-s_process(_,_,Invokes),member(s_invoke(ID,PARENTID,PARTNERLINK,PORTTYPE,OPERATION,INPUT,OUTPUT),Invokes).");
+			engine.addRule("partner(X):-s_invoke(ID,_,X,_,_,_,_),activity_id(ID).");			
+			engine.addRule("created_after(PID, T):-create_process(_,PID,CreateT,_),CreateT>T.");
+		} catch (MalformedTheoryException e) {
+			log.error("Invalid rule: " + e.getMessage());
+			e.printStackTrace();
+		}		
 	}
 		
 	public static BpelFactsManager getInstance() {				
@@ -161,6 +170,10 @@ public class BpelFactsManager {
 	public BpelProcessFact getProcess(Long processInstanceId) {
 		return processes.get(processInstances.get(processInstanceId));
 	}
+	
+	public boolean solve(String name, String faultName, String query) throws MalformedQueryException {
+		return engine.solve(new Query(name, faultName, query), "-1");
+	}
 
 	public boolean solve(String name, String faultName, String query, Long pid) {
 		
@@ -174,7 +187,7 @@ public class BpelFactsManager {
 		}
 	}
 
-	public void addRule(String rule) {
+	public void addRule(String rule) throws MalformedTheoryException {		
 		engine.addRule(rule);
 	}
 	
