@@ -43,6 +43,7 @@ public class BpelFactsManager {
 			engine.addRule("s_invoke(ID,PARENTID,PARTNERLINK,PORTTYPE,OPERATION,INPUT,OUTPUT):-s_process(_,_,Invokes),member(s_invoke(ID,PARENTID,PARTNERLINK,PORTTYPE,OPERATION,INPUT,OUTPUT),Invokes).");
 			engine.addRule("partner(X):-s_invoke(ID,_,X,_,_,_,_),activity_id(ID).");			
 			engine.addRule("created_after(PID, T):-create_process(_,PID,CreateT,_),CreateT>T.");
+			engine.addRule("xpath(X):-event(ProcessID,X,_,_,_,_,_,'ActivityEnabledEvent',_),not(event(ProcessID,X,_,_,_,_,_,'ActivityExecStartEvent',_)).");
 		} catch (MalformedTheoryException e) {
 			log.error("Invalid rule: " + e.getMessage());
 			e.printStackTrace();
