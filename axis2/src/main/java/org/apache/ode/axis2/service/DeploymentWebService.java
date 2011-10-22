@@ -162,7 +162,7 @@ public class DeploymentWebService {
                     
                     
                     String scope = "true.";                    
-                    if(scopePart != null) {
+                    if(scopePart != null && !scopePart.getText().trim().equals("")) {
                     	scope = scopePart.getText(); 
                     	// Test for valid scope
                     	AspectManager am = AspectManager.getInstance();
