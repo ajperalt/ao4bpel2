@@ -112,4 +112,8 @@ public class AspectConfImpl {
 		return "AspectContImpl: " + oaspect.toString();
 	}
 	
+	public AspectDeploymentUnitDir getDeploymentUnit() {
+		return _du;
+	}
+	
 }

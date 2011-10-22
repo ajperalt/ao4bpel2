@@ -1,9 +1,13 @@
 package de.tud.stg.ao4ode.runtime.aspectmanager;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import java.io.File;
 
 import javax.xml.namespace.QName;
 
@@ -61,6 +65,7 @@ public class AspectManager {
 			Set<OAdvice> beforeAdvices = new HashSet<OAdvice>();
 			Set<OAdvice> aroundAdvices = new HashSet<OAdvice>();
 			Set<OAdvice> afterAdvices = new HashSet<OAdvice>();
+			List<File> aspectDeploymentUnits = new ArrayList<File>();
 			
 			for(AspectConfImpl aspect : aspects) {
 				
@@ -87,6 +92,8 @@ public class AspectManager {
 								pc, pid)) {
 							
 							log.debug("POINTCUT MATCH AT " + xpath + ": " + pointcut);
+							
+							aspectDeploymentUnits.add(aspect.getDeploymentUnit().getDeployDir());
 							
 							OAdvice oAdvice = aspect.getOAspect().getOAdvice();
 							oAdvice.setProcessId(pid);
@@ -169,6 +176,7 @@ public class AspectManager {
 				aa.setBeforeAdvices(beforeAdvices);
 				aa.setAroundAdvices(aroundAdvices);
 				aa.setAfterAdvices(afterAdvices);
+				aa.setAspectDeploymentUnits(aspectDeploymentUnits);
 				
 				log.debug("Got " + aa.getAdvices().size() + " advices: "  + aa.getAdvices());
 				

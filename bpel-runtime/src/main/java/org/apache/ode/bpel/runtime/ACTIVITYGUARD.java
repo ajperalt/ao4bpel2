@@ -18,11 +18,13 @@
  */
 package org.apache.ode.bpel.runtime;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -119,8 +121,9 @@ public class ACTIVITYGUARD extends ACTIVITY {
                 	for(OAdvice oAdvice : aa.getAdvices()) {
                 		__log.debug("Adding advice " + oAdvice.getName() + " to bpelProcess: " + bpelProcess.getOProcess().getName());
                 		Map<String, Endpoint> invokeEndpoints = am.getAspectConfiguration(oAdvice.getOAspect().getQName()).getInvokeEndpoints();
+                		List<File> aspectDeploymentUnits = aa.getAspectDeploymentUnits();
                 		if(invokeEndpoints.size() > 0) {
-                			bpelProcess.addAdvice(oAdvice, invokeEndpoints);                		
+                			bpelProcess.addAdvice(oAdvice, invokeEndpoints, aspectDeploymentUnits);                		
                 		}
                 	}
                 	                	

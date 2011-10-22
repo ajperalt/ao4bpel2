@@ -34,7 +34,6 @@ public class BpelFactsManager {
 	private HashMap<Long,QName> processInstances = new HashMap<Long,QName>();
 	
 	private BpelFactsManager() {
-		// TODO: Load rules from file
 		try {
 			engine.addRule("activity(X):-event(ProcessID,_,_,_,_,X,_,'ActivityEnabledEvent',_),not(event(ProcessID,_,_,_,_,X,_,'ActivityExecStartEvent',_)).");		
 			engine.addRule("activity_id(X):-event(ProcessID,X,_,_,_,_,_,'ActivityEnabledEvent',_),not(event(ProcessID,X,_,_,_,_,_,'ActivityExecStartEvent',_)).");

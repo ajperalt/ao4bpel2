@@ -1,5 +1,7 @@
 package de.tud.stg.ao4ode.runtime.aspectmanager;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
@@ -16,6 +18,7 @@ public class AdviceActivity {
 	private Set<OAdvice> beforeAdvices;
 	private Set<OAdvice> aroundAdvices;
 	private Set<OAdvice> afterAdvices;
+	private List<File> aspectDeploymentUnits = new ArrayList<File>();
 
 	public void setOAdviceActivity(OActivity oactivity) {
 		this.oAdviceActivity = oactivity;
@@ -43,6 +46,14 @@ public class AdviceActivity {
 		advices.addAll(aroundAdvices);
 		advices.addAll(afterAdvices);
 		return advices;
+	}
+		
+	public List<File> getAspectDeploymentUnits() {
+		return aspectDeploymentUnits;
+	}
+
+	public void setAspectDeploymentUnits(List<File> aspectDeploymentUnits) {
+		this.aspectDeploymentUnits = aspectDeploymentUnits;
 	}
 
 }

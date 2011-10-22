@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +84,9 @@ public class DeploymentUnitDir {
     private volatile DocumentRegistry _docRegistry;
 
     private long _version = -1;
+    
+    // AO4ODE: aspect WSDLS
+    public List<File> aspectDeploymentUnits = new ArrayList<File>();
 
     private static final FileFilter _wsdlFilter = new FileFilter() {
         public boolean accept(File path) {
@@ -300,6 +304,26 @@ public class DeploymentUnitDir {
                 }
             }
         }
+        
+        // AO4ODE: Add aspect WSDLs
+        for(File _duDirectory : aspectDeploymentUnits) {
+        	WSDLFactory4BPEL wsdlFactory = (WSDLFactory4BPEL) WSDLFactoryBPEL20.newInstance();
+            WSDLReader r = wsdlFactory.newWSDLReader();
+            DefaultResourceFinder rf = new DefaultResourceFinder(_duDirectory, _duDirectory);
+            URI basedir = _duDirectory.toURI();
+            List<File> wsdls = FileUtils.directoryEntriesInPath(_duDirectory, DeploymentUnitDir._wsdlFilter);
+            for (File file : wsdls) {
+                URI uri = basedir.relativize(file.toURI());
+                try {                	
+                	Definition4BPEL def = (Definition4BPEL) r.readWSDL(new WSDLLocatorImpl(rf, uri));
+                	if(!_docRegistry.contains(def));
+                		_docRegistry.addDefinition(def);
+                } catch (WSDLException e) {
+                    throw new ContextException("Couldn't read aspect WSDL document at " + uri, e);
+                }
+            }
+        }
+        
         return _docRegistry;
     }
 

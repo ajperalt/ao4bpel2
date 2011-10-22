@@ -200,6 +200,9 @@ public interface ProcessConf {
 
     List<CronJob> getCronJobs();
     
+    // AO4ODE:
+    public void addAspectWsdls(List<File> aspectWsdls);
+    
     public enum CLEANUP_CATEGORY {
         INSTANCE,
         VARIABLES,

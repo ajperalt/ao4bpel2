@@ -561,4 +561,9 @@ public class ProcessConfImpl implements ProcessConf {
         
         return jobs;
     }
+    
+    // AO4ODE
+    public void addAspectWsdls(List<File> aspectDus) {
+    	_du.aspectDeploymentUnits.addAll(aspectDus);
+    }
 }

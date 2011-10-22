@@ -90,5 +90,9 @@ public class DocumentRegistry {
 
         _definitions.add(def);
     }
+    
+    public boolean contains(Object elem) {
+    	return _definitions.contains(elem);
+    }
 
 }

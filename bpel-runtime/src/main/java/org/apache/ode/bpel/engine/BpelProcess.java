@@ -18,6 +18,7 @@
  */
 package org.apache.ode.bpel.engine;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -1180,14 +1181,19 @@ public class BpelProcess {
     }
 
     // AO4ODE: Add Partner Link for advice
-	public void addAdvice(OProcess oadvice, Map<String,Endpoint> invokeEndpoints) {
-		__log.debug("Adding advice " + oadvice + " to process" + this);		
-		_adviceInvokeEndpoints.put(oadvice, invokeEndpoints);
-		addAdviceRoles();
-		initPartnerRoles(true);
-		// Add Partner link as a child to OProcess. A little ugly, but saves a
-		// lot of modifications!
-		// AO4ODE: FIXME: Only PartnerLink elements!
-		_oprocess.getChildren().addAll(oadvice.getChildren());
+	public void addAdvice(OProcess oadvice, Map<String,Endpoint> invokeEndpoints, List<File> aspectDus) {
+		if(!_adviceInvokeEndpoints.containsKey(oadvice)) {
+			__log.debug("Adding advice " + oadvice + " to process " + this);		
+			_adviceInvokeEndpoints.put(oadvice, invokeEndpoints);
+			// Add WSDLs		
+			getConf().addAspectWsdls(aspectDus);
+			addAdviceRoles();
+			// Init partner roles
+			initPartnerRoles(true);
+			// Add Partner link as a child to OProcess. A little ugly, but saves a
+			// lot of modifications!
+			// AO4ODE: FIXME: Only PartnerLink elements!		
+			_oprocess.getChildren().addAll(oadvice.getChildren());
+		}
 	}
 }
