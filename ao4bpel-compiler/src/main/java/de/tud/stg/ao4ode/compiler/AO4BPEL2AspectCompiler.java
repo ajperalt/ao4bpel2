@@ -260,8 +260,13 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 		__log.debug("Replacing xpath pointcut " + oPointcut.getQuery()
 				+ " with prolog pointcut " + buf.toString());
 		
-		oPointcut.setLanguage("prolog");
-		oPointcut.setQuery(buf.toString());
+		if(buf.length() > 0) {
+			oPointcut.setLanguage("prolog");
+			oPointcut.setQuery(buf.toString());
+		}
+		else {
+			oPointcut.setQuery("false.");
+		}
 		
 	}
 	
