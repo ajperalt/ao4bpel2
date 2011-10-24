@@ -7,8 +7,6 @@ import javax.xml.namespace.QName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import alice.tuprolog.InvalidTheoryException;
-
 import de.tud.stg.ao4ode.prolog.BPELPrologEngine;
 import de.tud.stg.ao4ode.prolog.IBPELPrologEngine;
 import de.tud.stg.ao4ode.prolog.IStaticProcessFactGenerator;

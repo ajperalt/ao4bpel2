@@ -259,7 +259,7 @@ public class BPELPrologEngine implements IBPELPrologEngine {
 		
 		try {
 			
-			log.info("Solving query: " + q);
+			log.debug("Solving query: " + q);
 			
 			SolveInfo si = engine.solve(q);			
 			if(si != null && si.isSuccess()) { // pointcut matches 

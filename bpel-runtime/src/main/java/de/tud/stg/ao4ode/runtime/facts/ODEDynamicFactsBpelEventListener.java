@@ -15,7 +15,6 @@ import org.apache.ode.bpel.evt.VariableReadEvent;
 import org.apache.ode.bpel.iapi.BpelEventListener;
 
 import de.tud.stg.ao4ode.facts.BpelFactsManager;
-import de.tud.stg.ao4ode.facts.BpelProcessFact;
 
 /**
  * BPEL Event Listener to collect dynamic process facts

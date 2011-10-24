@@ -1,7 +1,5 @@
 package de.tud.stg.ao4ode.prolog;
 
-import alice.tuprolog.Theory;
-
 /**
  * This exception is thrown when a rule is malformed/invalid
  * @author Philipp Zuehlke
