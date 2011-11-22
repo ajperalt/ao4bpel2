@@ -689,7 +689,7 @@ define "apache-ode" do
 
   desc "ODE Axis2 Based Distribution"
   define "distro" do
-    parent.distro(self, "-war") { |zip| zip.include project("ode:axis2-war").package(:war), :as=>"ode.war" }
+    parent.distro(self, "-war") { |zip| zip.include project("ode:axis2-war").package(:war), :as=>"ao4ode.war" }
     parent.distro(self, "-jbi") { |zip| zip.include project("ode:jbi").package(:zip) }
 
     # Preparing third party licenses
