@@ -218,7 +218,8 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 						XPathExpression expr = xpath.compile(xpathString);
 						Object result = expr.evaluate(doc.getDocumentElement(), XPathConstants.NODESET);
 						NodeList nodes = (NodeList) result;
-						nodeLists.put(bpelFile.getName(), nodes);				
+						if(nodes.getLength() > 0)
+							nodeLists.put(bpelFile.getName(), nodes);				
 					} catch (XPathExpressionException e) {
 						e.printStackTrace();
 					}
@@ -240,8 +241,9 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 		}
 		
 		// Create prolog pointcut for nodes matched by xpath
-		StringBuffer buf = new StringBuffer();		
-		for(String process : nodeLists.keySet()) {
+		StringBuffer buf = new StringBuffer("(");
+		int p = 0;
+		for(String process : nodeLists.keySet()) {		
 			NodeList nodes = nodeLists.get(process);
 			if(nodes.getLength() > 0) {
 				__log.debug("Found " + nodes.getLength() + " matching Elements for process " + process);
@@ -252,15 +254,19 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 			    	if(i < nodes.getLength()-1)
 			    		buf.append(";");
 				}
-				buf.append(".");
 				
-			}
+				if(p < nodeLists.size()-1)
+		    		buf.append(";");
+				else
+					buf.append(").");
+			}			
+			p++;
 		}
 		
 		__log.debug("Replacing xpath pointcut " + oPointcut.getQuery()
 				+ " with prolog pointcut " + buf.toString());
 		
-		if(buf.length() > 0) {
+		if(buf.length() > 1) {
 			oPointcut.setLanguage("prolog");
 			oPointcut.setQuery(buf.toString());
 		}

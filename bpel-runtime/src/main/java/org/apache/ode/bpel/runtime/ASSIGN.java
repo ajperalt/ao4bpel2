@@ -476,7 +476,7 @@ class ASSIGN extends ACTIVITY {
             
             // Get a pointer within the lvalue.
             Node lvaluePtr = lvalue;
-            boolean headerAssign = false;
+            boolean headerAssign = false;            
             if (ocopy.to instanceof OAssign.DirectRef) {
                 DirectRef dref = ((DirectRef) ocopy.to);
                 Element el = DOMUtils.findChildByName((Element)lvalue, dref.elName);
@@ -492,8 +492,8 @@ class ASSIGN extends ACTIVITY {
             		ocopy.to.getVariable().name.contains("ThisJPOutVariable")) {
             		OAdvice oadvice = (OAdvice)ocopy.getOwner();
                 	AspectManager am = AspectManager.getInstance();
-                	ACTIVITYGUARD ag = am.getJPActivity(getBpelRuntimeContext().getPid());
-                	
+                	ACTIVITYGUARD ag = am.getJPActivity(getBpelRuntimeContext().getPid());                	
+                	    	
                 	// Rember part, headerPart, location
                 	String toPartName = null;
                 	if(((VariableRef)ocopy.to).part != null)
@@ -508,27 +508,36 @@ class ASSIGN extends ACTIVITY {
                 		toLocation = ((VariableRef)ocopy.to).location;
                 	
                 	// Create new VariableRef
-                	ocopy.to = new VariableRef(ag._self.getO().getOwner());
+                	VariableRef jpOutVarRef = new VariableRef(ag._self.getO().getOwner());                	
                 	if(oadvice.getOutputVar() != null) {                	
-                		((VariableRef)ocopy.to).variable = oadvice.getOutputVar();
+                		jpOutVarRef.variable = oadvice.getOutputVar();
                 	}
                 	
                 	if(toPartName != null) {
                 		OMessageVarType toVarType = ((OMessageVarType)oadvice.getOutputVar().type);        	
-                		((VariableRef)ocopy.to).part = toVarType.parts.get(toPartName);
+                		jpOutVarRef.part = toVarType.parts.get(toPartName);
                 	}
                 	
                 	if(toHeaderPart != null)
-                		((VariableRef)ocopy.to).headerPart = ((OMessageVarType)oadvice.getOutputVar().type).parts.get(toHeaderPart);
+                		jpOutVarRef.headerPart = ((OMessageVarType)oadvice.getOutputVar().type).parts.get(toHeaderPart);
                 	
                 	if(toLocation != null)
-                		((VariableRef)ocopy.to).location = toLocation;
-                }            	
-            	
-                VariableRef varRef = ((VariableRef) ocopy.to);
-                if (varRef.headerPart != null) headerAssign = true;
-                lvaluePtr = evalQuery(lvalue, varRef.part != null ? varRef.part : varRef.headerPart, varRef.location,
+                		jpOutVarRef.location = toLocation;
+                	
+                	
+                	VariableRef varRef = jpOutVarRef;
+                	if (varRef.headerPart != null) headerAssign = true;
+                	lvaluePtr = evalQuery(lvalue, varRef.part != null ? varRef.part : varRef.headerPart, varRef.location,
                         new EvaluationContextProxy(varRef.getVariable(), lvalue));
+                }
+                else {
+            	
+                	VariableRef varRef = ((VariableRef) ocopy.to);
+                	if (varRef.headerPart != null) headerAssign = true;
+                	lvaluePtr = evalQuery(lvalue, varRef.part != null ? varRef.part : varRef.headerPart, varRef.location,
+                        new EvaluationContextProxy(varRef.getVariable(), lvalue));
+                	
+                }
             } else if (ocopy.to instanceof OAssign.PropertyRef) {
                 PropertyRef propRef = ((PropertyRef) ocopy.to);
                 lvaluePtr = evalQuery(lvalue, propRef.propertyAlias.part,
