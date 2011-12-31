@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import org.apache.ode.bpel.iapi.ProcessStore;
 import org.apache.ode.store.ProcessStoreImpl;
 
 /**
@@ -69,5 +70,7 @@ public interface AspectStore {
      * @param psl {@link AspectStoreListener} 
      */
     void unregisterListener(AspectStoreListener asl);
+    
+    void updateXPathPointcuts(ProcessStore processStore);
 
 }

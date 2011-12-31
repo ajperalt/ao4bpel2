@@ -14,6 +14,8 @@ public class OPointcut extends OBase {
 	private String name;
 	private String language = "prolog";
 	private String query;
+	private String originalLanguage;
+	private String originalQuery;
 	
 	public OPointcut(OProcess _owner, String name, String language, String query) {
 		super(_owner);
@@ -53,6 +55,22 @@ public class OPointcut extends OBase {
 
 	public String getLanguage() {
 		return language;
+	}
+
+	public void setOriginalLanguage(String originalLanguage) {
+		this.originalLanguage = originalLanguage;
+	}
+
+	public String getOriginalLanguage() {
+		return originalLanguage;
+	}
+
+	public void setOriginalQuery(String originalQuery) {
+		this.originalQuery = originalQuery;
+	}
+
+	public String getOriginalQuery() {
+		return originalQuery;
 	}
 		
 

@@ -23,6 +23,7 @@ import org.apache.ode.bpel.dd.DeployAspectDocument;
 import org.apache.ode.bpel.dd.TDeploymentAspect;
 import org.apache.ode.bpel.iapi.ContextException;
 import org.apache.ode.bpel.iapi.EndpointReferenceContext;
+import org.apache.ode.bpel.iapi.ProcessStore;
 import org.apache.ode.bpel.o.OAspect;
 import org.apache.ode.bpel.o.OPointcut;
 import org.apache.ode.il.config.OdeConfigProperties;
@@ -37,6 +38,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import de.tud.stg.ao4ode.aspectstore.AspectDeploymentUnitDir.CBAInfo;
+import de.tud.stg.ao4ode.compiler.AO4BPEL2AspectCompiler;
 
 /**
  * AspectStore, based on/stripped down version of ProcessStore
@@ -278,6 +280,27 @@ public class AspectStoreImpl implements AspectStore {
 
 	public AspectConfImpl getAspectConfiguration(QName aspectId) {
 		return _aspects.get(aspectId);
+	}
+	
+	public void updateXPathPointcuts(ProcessStore processStore) {
+		__log.debug("Updating XPath pointcuts");
+		AO4BPEL2AspectCompiler compiler = null;
+		try {
+			compiler = new AO4BPEL2AspectCompiler((ProcessStoreImpl)processStore);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		List<File> bpelFiles = compiler.getBpelFiles();
+		for(AspectConfImpl aspectConf : this.getAspects()) {
+			for(OPointcut oPointcut : aspectConf.getOAspect().getPointcuts()) {
+				// Replace xpath with prolog pointcuts
+	        	if(oPointcut.getOriginalLanguage() != null && oPointcut.getOriginalLanguage().equals("xpath")) {
+	        		oPointcut.setQuery(oPointcut.getOriginalQuery());
+	        		oPointcut.setLanguage(oPointcut.getOriginalLanguage());
+	        		compiler.replaceXPathPointcuts(oPointcut, bpelFiles);
+	        	}
+			}
+		}
 	}
 
 }

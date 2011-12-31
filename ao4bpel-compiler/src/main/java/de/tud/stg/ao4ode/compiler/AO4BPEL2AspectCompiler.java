@@ -159,7 +159,7 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 	}
 	
 	
-	private List<File> getBpelFiles() {		
+	public List<File> getBpelFiles() {		
 		List<File> allProcesses = new ArrayList<File>();
 		Collection<DeploymentUnitDir> processDeploymentUnits = processStore._deploymentUnits.values();
 		for(DeploymentUnitDir du : processDeploymentUnits) {
@@ -267,7 +267,9 @@ public class AO4BPEL2AspectCompiler extends BpelCompiler20 {
 				+ " with prolog pointcut " + buf.toString());
 		
 		if(buf.length() > 1) {
+			oPointcut.setOriginalLanguage(oPointcut.getLanguage());
 			oPointcut.setLanguage("prolog");
+			oPointcut.setOriginalQuery(oPointcut.getQuery());
 			oPointcut.setQuery(buf.toString());
 		}
 		else {

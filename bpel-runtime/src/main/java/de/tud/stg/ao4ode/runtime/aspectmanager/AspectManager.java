@@ -272,4 +272,8 @@ public class AspectManager {
 		fm.addRule(rule);
 	}
 	
+	public void updateXPathPointcuts() {
+		aspectStore.updateXPathPointcuts(processStore);
+	}
+	
 }

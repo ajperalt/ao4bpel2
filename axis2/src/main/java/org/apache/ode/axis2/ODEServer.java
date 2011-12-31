@@ -690,6 +690,8 @@ public class ODEServer {
                      * Notice that the new process is actually created on the 'ACTIVATED' event.
                      */
                     _bpelServer.cleanupProcess(pconf);
+                    // AO4ODE: Update XPath pointcuts
+                    AspectManager.getInstance().updateXPathPointcuts();
                 }
                 break;
             case ACTVIATED:
